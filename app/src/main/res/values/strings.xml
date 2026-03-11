@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- UnHook — All user-facing strings -->
+<resources>
+    <string name="app_name">UnHook</string>
+    <string name="app_tagline">Get unhooked. Together.</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_duel">Duel</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Onboarding — Welcome -->
+    <string name="onboarding_welcome_title">UnHook</string>
+    <string name="onboarding_welcome_subtitle">Get unhooked. Together.</string>
+    <string name="onboarding_get_started">Get Started</string>
+
+    <!-- Onboarding — Profile -->
+    <string name="onboarding_profile_title">Who are you?</string>
+    <string name="onboarding_name_hint">What\'s your name?</string>
+    <string name="onboarding_pick_avatar">Pick your avatar</string>
+    <string name="onboarding_continue">Continue</string>
+
+    <!-- Onboarding — Pairing -->
+    <string name="onboarding_pairing_title">Pair with your partner</string>
+    <string name="onboarding_create_room">I\'ll create a room</string>
+    <string name="onboarding_have_code">I have a code</string>
+    <string name="onboarding_your_code">Your pairing code</string>
+    <string name="onboarding_share_code">Share code</string>
+    <string name="onboarding_enter_code_hint">Enter 6-digit code</string>
+    <string name="onboarding_connect">Connect</string>
+    <string name="onboarding_partner_name_hint">Partner\'s name</string>
+    <string name="onboarding_partner_avatar">Pick their avatar</string>
+
+    <!-- Onboarding — Confirmation -->
+    <string name="onboarding_all_set">You\'re all set! 🎉</string>
+    <string name="onboarding_paired_with">Paired with %s</string>
+    <string name="onboarding_lets_go">Let the battle begin</string>
+    <string name="onboarding_start">Start UnHooking</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">UnHook</string>
+    <string name="dashboard_vs">VS</string>
+    <string name="dashboard_points">pts</string>
+    <string name="dashboard_streak">Streak</string>
+    <string name="dashboard_resists_today">Resists</string>
+    <string name="dashboard_time_saved">Time saved</string>
+    <string name="dashboard_recent_activity">Recent Activity</string>
+    <string name="dashboard_no_activity">No activity yet. Start resisting!</string>
+    <string name="dashboard_days">days</string>
+    <string name="dashboard_minutes">min</string>
+
+    <!-- Duel -->
+    <string name="duel_title">Duel</string>
+    <string name="duel_coming_soon">Chore Wars &amp; Wish List coming in Phase 4</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_coming_soon">Settings coming in Phase 2</string>
+
+    <!-- Points -->
+    <string name="points_resisted">Resisted %s</string>
+    <string name="points_scrolled">Scrolled past %s</string>
+</resources>
