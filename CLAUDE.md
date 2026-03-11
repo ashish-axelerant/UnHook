@@ -129,23 +129,17 @@ app/src/main/java/com/unhook/app/
 ---
 
 ## Current Phase
-**PHASE 1 — Foundation & Couple Setup**
-
-### Phase 1 Checklist
-- [ ] Android project created
-- [ ] Git initialized + pushed to GitHub
-- [ ] Bottom navigation (Dashboard / Duel / Settings)
-- [ ] Onboarding screens (name, emoji avatar, pairing code)
-- [ ] Room DB setup (User + Partner tables)
-- [ ] Couple pairing flow (generate 6-digit code / enter code)
-- [ ] Dashboard shell screen
-
-### Update this section when moving to next phase!
+**ALL PHASES COMPLETE** — App is feature-complete for local-only mode.
 
 ---
 
 ## What's Already Done
-- Nothing yet — starting fresh
+- **Phase 1:** Project scaffold, Gradle KTS, Compose + Material 3 theme, bottom nav, Room DB (User/Partner/PointEvent), onboarding flow, dashboard screen
+- **Phase 2:** AccessibilityService detection, ForegroundService, BlockedApps screen, Settings with permission management, BootReceiver
+- **Phase 3:** Intervention overlay with breathing animation, 5s countdown, resist/let-me-in buttons, 20 built-in reminder messages, points logging
+- **Phase 4:** Points engine (+10 resist, -15 scroll), ChoreItem/WishItem entities, ChoreWishScreen with tabs, DuelScreen with battle card, WeeklyResetWorker
+- **Phase 5:** WeeklyReportWorker, NotificationHelper, ReportScreen with 7-day usage chart, notification channels
+- **Phase 6:** Streak tracking (+50 bonus every 3 resists), haptic feedback on buttons, share card in Settings
 
 ---
 

@@ -81,12 +81,33 @@ class InterventionViewModel(application: Application) : AndroidViewModel(applica
                     appPackageName = state.packageName,
                 ),
             )
+            // Update streak: increment if resisted today
+            val newStreak = user.currentStreak + 1
+
             db.userDao().update(
                 user.copy(
                     weeklyPoints = user.weeklyPoints + 10,
                     totalResists = user.totalResists + 1,
+                    currentStreak = newStreak,
                 ),
             )
+
+            // Bonus: 3-day streak = +50 points
+            if (newStreak > 0 && newStreak % 3 == 0) {
+                db.pointEventDao().insert(
+                    PointEvent(
+                        userId = user.id,
+                        points = 50,
+                        reason = "$newStreak-day streak bonus!",
+                        appPackageName = "",
+                    ),
+                )
+                db.userDao().update(
+                    db.userDao().getMeOnce()!!.copy(
+                        weeklyPoints = db.userDao().getMeOnce()!!.weeklyPoints + 50,
+                    ),
+                )
+            }
 
             _uiState.value = _uiState.value.copy(isVisible = false)
         }
@@ -107,7 +128,10 @@ class InterventionViewModel(application: Application) : AndroidViewModel(applica
                 ),
             )
             db.userDao().update(
-                user.copy(weeklyPoints = user.weeklyPoints - 15),
+                user.copy(
+                    weeklyPoints = user.weeklyPoints - 15,
+                    currentStreak = 0,
+                ),
             )
 
             _uiState.value = _uiState.value.copy(isVisible = false)

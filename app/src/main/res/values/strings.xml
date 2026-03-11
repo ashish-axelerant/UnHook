@@ -133,6 +133,11 @@
     <string name="report_notification_tied">It\'s a tie this week! 🤝</string>
     <string name="report_notification_body">You: %1$d pts vs Partner: %2$d pts. You resisted %3$d times.</string>
 
+    <!-- Share -->
+    <string name="share_title">Share UnHook</string>
+    <string name="share_desc">Help your friends get unhooked too</string>
+    <string name="share_text">I\'m using UnHook to cut my social media habit with my partner. It\'s like a couples duel — resist scrolling, earn points, loser does chores! Try it out: https://unhook.app</string>
+
     <!-- Points -->
     <string name="points_resisted">Resisted %s</string>
     <string name="points_scrolled">Scrolled past %s</string>

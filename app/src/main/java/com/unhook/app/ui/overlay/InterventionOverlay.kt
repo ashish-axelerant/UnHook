@@ -30,6 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import android.view.HapticFeedbackConstants
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -47,6 +49,7 @@ fun InterventionOverlay(
     viewModel: InterventionViewModel,
 ) {
     val state by viewModel.uiState.collectAsState()
+    val view = LocalView.current
 
     if (!state.isVisible) return
 
@@ -117,7 +120,10 @@ fun InterventionOverlay(
 
             // Resist button (always active)
             Button(
-                onClick = { viewModel.onResist() },
+                onClick = {
+                    view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                    viewModel.onResist()
+                },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -135,7 +141,10 @@ fun InterventionOverlay(
 
             // Let me in button (active after countdown)
             OutlinedButton(
-                onClick = { viewModel.onLetMeIn() },
+                onClick = {
+                    view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                    viewModel.onLetMeIn()
+                },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = state.canLetIn,
                 shape = RoundedCornerShape(12.dp),
