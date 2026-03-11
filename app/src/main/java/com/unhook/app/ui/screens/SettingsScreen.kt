@@ -5,6 +5,7 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Process
 import android.provider.Settings
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.QueryStats
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -64,6 +66,7 @@ fun SettingsScreen(
     var hasAccessibility by remember { mutableStateOf(false) }
     var hasUsageStats by remember { mutableStateOf(false) }
     var hasNotifications by remember { mutableStateOf(false) }
+    var hasOverlay by remember { mutableStateOf(false) }
 
     // Re-check permissions when returning from system settings
     LaunchedEffect(lifecycleOwner) {
@@ -71,6 +74,7 @@ fun SettingsScreen(
             hasAccessibility = isAccessibilityEnabled(context)
             hasUsageStats = isUsageStatsGranted(context)
             hasNotifications = isNotificationEnabled(context)
+            hasOverlay = Settings.canDrawOverlays(context)
         }
     }
 
@@ -111,6 +115,19 @@ fun SettingsScreen(
             isGranted = hasUsageStats,
             onClick = {
                 context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+            },
+        )
+        PermissionItem(
+            icon = Icons.Filled.Layers,
+            title = stringResource(R.string.settings_overlay),
+            description = stringResource(R.string.settings_overlay_desc),
+            isGranted = hasOverlay,
+            onClick = {
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:${context.packageName}"),
+                )
+                context.startActivity(intent)
             },
         )
         PermissionItem(

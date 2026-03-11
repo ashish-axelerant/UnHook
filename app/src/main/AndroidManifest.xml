@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         android:maxSdkVersion="999" />
 
+    <!-- Overlay permission for intervention screen -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <!-- Keep monitoring service alive -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
@@ -34,6 +37,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Intervention overlay shown on top of blocked apps -->
+        <activity
+            android:name=".ui.overlay.InterventionActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.UnHook" />
 
         <!-- Accessibility service for detecting blocked app launches -->
         <service

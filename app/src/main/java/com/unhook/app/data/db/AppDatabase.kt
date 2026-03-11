@@ -14,6 +14,7 @@ import androidx.room.Update
 import com.unhook.app.data.model.BlockedApp
 import com.unhook.app.data.model.Partner
 import com.unhook.app.data.model.PointEvent
+import com.unhook.app.data.model.ReminderMessage
 import com.unhook.app.data.model.User
 import kotlinx.coroutines.flow.Flow
 
@@ -67,6 +68,9 @@ interface BlockedAppDao {
     @Query("SELECT packageName FROM blocked_apps WHERE isEnabled = 1")
     suspend fun getEnabledPackageNames(): List<String>
 
+    @Query("SELECT appName FROM blocked_apps WHERE packageName = :packageName LIMIT 1")
+    suspend fun getAppName(packageName: String): String?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(app: BlockedApp)
 
@@ -80,9 +84,27 @@ interface BlockedAppDao {
     suspend fun count(): Int
 }
 
+@Dao
+interface ReminderMessageDao {
+    @Query("SELECT * FROM reminder_messages ORDER BY id ASC")
+    fun getAll(): Flow<List<ReminderMessage>>
+
+    @Query("SELECT * FROM reminder_messages ORDER BY RANDOM() LIMIT 1")
+    suspend fun getRandom(): ReminderMessage?
+
+    @Insert
+    suspend fun insert(message: ReminderMessage): Long
+
+    @Delete
+    suspend fun delete(message: ReminderMessage)
+
+    @Query("SELECT COUNT(*) FROM reminder_messages")
+    suspend fun count(): Int
+}
+
 @Database(
-    entities = [User::class, Partner::class, PointEvent::class, BlockedApp::class],
-    version = 2,
+    entities = [User::class, Partner::class, PointEvent::class, BlockedApp::class, ReminderMessage::class],
+    version = 3,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -90,6 +112,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun partnerDao(): PartnerDao
     abstract fun pointEventDao(): PointEventDao
     abstract fun blockedAppDao(): BlockedAppDao
+    abstract fun reminderMessageDao(): ReminderMessageDao
 
     companion object {
         @Volatile

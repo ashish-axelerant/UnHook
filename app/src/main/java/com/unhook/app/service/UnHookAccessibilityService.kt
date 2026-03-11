@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.unhook.app.data.db.AppDatabase
+import com.unhook.app.ui.overlay.InterventionActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,6 +18,7 @@ class UnHookAccessibilityService : AccessibilityService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var blockedPackages = setOf<String>()
     private var lastDetectedPackage: String? = null
+    private var interventionShowing = false
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -34,10 +36,12 @@ class UnHookAccessibilityService : AccessibilityService() {
 
         if (packageName in blockedPackages && packageName != lastDetectedPackage) {
             lastDetectedPackage = packageName
+            interventionShowing = true
             Log.d(TAG, "Blocked app detected: $packageName")
-            broadcastDetection(packageName)
+            launchIntervention(packageName)
         } else if (packageName !in blockedPackages) {
             lastDetectedPackage = null
+            interventionShowing = false
         }
     }
 
@@ -58,17 +62,15 @@ class UnHookAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun broadcastDetection(packageName: String) {
-        val intent = Intent(ACTION_APP_DETECTED).apply {
-            putExtra(EXTRA_PACKAGE_NAME, packageName)
-            setPackage("com.unhook.app")
+    private fun launchIntervention(packageName: String) {
+        val intent = Intent(this, InterventionActivity::class.java).apply {
+            putExtra(InterventionActivity.EXTRA_PACKAGE_NAME, packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
-        sendBroadcast(intent)
+        startActivity(intent)
     }
 
     companion object {
         private const val TAG = "UnHookAccessibility"
-        const val ACTION_APP_DETECTED = "com.unhook.app.APP_DETECTED"
-        const val EXTRA_PACKAGE_NAME = "extra_package_name"
     }
 }

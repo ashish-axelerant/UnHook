@@ -81,6 +81,16 @@
     <!-- Accessibility Service -->
     <string name="accessibility_service_description">UnHook uses this service to detect when you open blocked social media apps, so it can show an intervention screen to help you resist.</string>
 
+    <!-- Settings — Overlay -->
+    <string name="settings_overlay">Display Over Apps</string>
+    <string name="settings_overlay_desc">Required to show intervention screen on top of blocked apps</string>
+
+    <!-- Intervention -->
+    <string name="intervention_opening">You\'re opening %s</string>
+    <string name="intervention_resist">Resist (+10 pts)</string>
+    <string name="intervention_let_me_in">Let me in (-15 pts)</string>
+    <string name="intervention_wait">Wait %d seconds…</string>
+
     <!-- Points -->
     <string name="points_resisted">Resisted %s</string>
     <string name="points_scrolled">Scrolled past %s</string>
