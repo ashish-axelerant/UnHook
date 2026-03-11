@@ -4,11 +4,14 @@ package com.unhook.app.data.db
 import android.content.Context
 import androidx.room.Dao
 import androidx.room.Database
+import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Update
+import com.unhook.app.data.model.BlockedApp
 import com.unhook.app.data.model.Partner
 import com.unhook.app.data.model.PointEvent
 import com.unhook.app.data.model.User
@@ -56,15 +59,37 @@ interface PointEventDao {
     suspend fun insert(event: PointEvent): Long
 }
 
+@Dao
+interface BlockedAppDao {
+    @Query("SELECT * FROM blocked_apps ORDER BY appName ASC")
+    fun getAll(): Flow<List<BlockedApp>>
+
+    @Query("SELECT packageName FROM blocked_apps WHERE isEnabled = 1")
+    suspend fun getEnabledPackageNames(): List<String>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(app: BlockedApp)
+
+    @Update
+    suspend fun update(app: BlockedApp)
+
+    @Delete
+    suspend fun delete(app: BlockedApp)
+
+    @Query("SELECT COUNT(*) FROM blocked_apps")
+    suspend fun count(): Int
+}
+
 @Database(
-    entities = [User::class, Partner::class, PointEvent::class],
-    version = 1,
+    entities = [User::class, Partner::class, PointEvent::class, BlockedApp::class],
+    version = 2,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun partnerDao(): PartnerDao
     abstract fun pointEventDao(): PointEventDao
+    abstract fun blockedAppDao(): BlockedAppDao
 
     companion object {
         @Volatile
@@ -76,7 +101,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "unhook_database",
-                ).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

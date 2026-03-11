@@ -1,6 +1,7 @@
 // UnHook — Single activity entry point, hosts Compose UI
 package com.unhook.app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.unhook.app.data.repository.PointsRepository
 import com.unhook.app.data.repository.UserRepository
 import com.unhook.app.navigation.UnHookNavGraph
+import com.unhook.app.service.MonitoringForegroundService
 import com.unhook.app.ui.screens.OnboardingScreen
 import com.unhook.app.ui.theme.UnHookTheme
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +27,7 @@ class MainActivity : ComponentActivity() {
         val db = (application as UnHookApplication).database
         val userRepository = UserRepository(db.userDao(), db.partnerDao())
         val pointsRepository = PointsRepository(db.pointEventDao())
+        val blockedAppDao = db.blockedAppDao()
 
         setContent {
             UnHookTheme {
@@ -38,15 +41,29 @@ class MainActivity : ComponentActivity() {
                                 userRepository.createUser(userName, userAvatar)
                                 userRepository.createPartner(partnerName, partnerAvatar, pairingCode)
                             }
+                            // Start monitoring after onboarding
+                            startMonitoringService()
                         },
                     )
                 } else {
                     UnHookNavGraph(
                         userRepository = userRepository,
                         pointsRepository = pointsRepository,
+                        blockedAppDao = blockedAppDao,
                     )
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Ensure monitoring is running when app comes to foreground
+        startMonitoringService()
+    }
+
+    private fun startMonitoringService() {
+        val intent = Intent(this, MonitoringForegroundService::class.java)
+        startForegroundService(intent)
     }
 }

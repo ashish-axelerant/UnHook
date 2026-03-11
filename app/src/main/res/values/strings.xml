@@ -55,7 +55,31 @@
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
-    <string name="settings_coming_soon">Settings coming in Phase 2</string>
+    <string name="settings_permissions">Permissions</string>
+    <string name="settings_accessibility">Accessibility Service</string>
+    <string name="settings_accessibility_desc">Required to detect when blocked apps open</string>
+    <string name="settings_usage_stats">Usage Access</string>
+    <string name="settings_usage_stats_desc">Required to track time spent in apps</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_desc">For reminders and weekly reports</string>
+    <string name="settings_battery">Battery Optimization</string>
+    <string name="settings_battery_desc">Disable to prevent UnHook from being killed</string>
+    <string name="settings_app_management">App Management</string>
+    <string name="settings_blocked_apps">Blocked Apps</string>
+    <string name="settings_blocked_apps_desc">Choose which apps to monitor</string>
+
+    <!-- Blocked Apps -->
+    <string name="blocked_apps_title">Blocked Apps</string>
+    <string name="blocked_apps_subtitle">Toggle apps you want UnHook to monitor. When you open these apps, the intervention screen will appear.</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_monitoring">Monitoring</string>
+    <string name="notification_channel_monitoring_desc">Shows when UnHook is actively monitoring</string>
+    <string name="notification_monitoring_title">UnHook is active</string>
+    <string name="notification_monitoring_text">Monitoring your blocked apps</string>
+
+    <!-- Accessibility Service -->
+    <string name="accessibility_service_description">UnHook uses this service to detect when you open blocked social media apps, so it can show an intervention screen to help you resist.</string>
 
     <!-- Points -->
     <string name="points_resisted">Resisted %s</string>

@@ -23,8 +23,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.unhook.app.R
+import com.unhook.app.data.db.BlockedAppDao
 import com.unhook.app.data.repository.PointsRepository
 import com.unhook.app.data.repository.UserRepository
+import com.unhook.app.ui.screens.BlockedAppsScreen
 import com.unhook.app.ui.screens.DashboardScreen
 import com.unhook.app.ui.screens.DuelScreen
 import com.unhook.app.ui.screens.SettingsScreen
@@ -41,30 +43,36 @@ private val bottomNavItems = listOf(Screen.Dashboard, Screen.Duel, Screen.Settin
 fun UnHookNavGraph(
     userRepository: UserRepository,
     pointsRepository: PointsRepository,
+    blockedAppDao: BlockedAppDao,
 ) {
     val navController = rememberNavController()
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
 
-                bottomNavItems.forEach { screen ->
-                    NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = null) },
-                        label = { Text(stringResource(screen.labelRes)) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+            // Hide bottom bar on sub-screens
+            if (currentRoute in bottomNavItems.map { it.route }) {
+                NavigationBar {
+                    val currentDestination = navBackStackEntry?.destination
+
+                    bottomNavItems.forEach { screen ->
+                        NavigationBarItem(
+                            icon = { Icon(screen.icon, contentDescription = null) },
+                            label = { Text(stringResource(screen.labelRes)) },
+                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                    )
+                            },
+                        )
+                    }
                 }
             }
         },
@@ -81,7 +89,15 @@ fun UnHookNavGraph(
                 DuelScreen()
             }
             composable(Screen.Settings.route) {
-                SettingsScreen()
+                SettingsScreen(
+                    onNavigateToBlockedApps = { navController.navigate("blocked_apps") },
+                )
+            }
+            composable("blocked_apps") {
+                BlockedAppsScreen(
+                    blockedAppDao = blockedAppDao,
+                    onBack = { navController.popBackStack() },
+                )
             }
         }
     }
