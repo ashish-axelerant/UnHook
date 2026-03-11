@@ -53,6 +53,7 @@ private val motivationalMessages = listOf(
 fun DashboardScreen(
     userRepository: UserRepository,
     pointsRepository: PointsRepository,
+    onNavigateToReport: () -> Unit = {},
 ) {
     val user by userRepository.getMe().collectAsState(initial = null)
     val partner by userRepository.getPartner().collectAsState(initial = null)
@@ -95,6 +96,15 @@ fun DashboardScreen(
         } else {
             items(recentEvents) { event ->
                 ActivityItem(event = event)
+            }
+        }
+        item {
+            androidx.compose.material3.OutlinedButton(
+                onClick = onNavigateToReport,
+                modifier = Modifier.fillMaxWidth(),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+            ) {
+                Text(stringResource(R.string.dashboard_view_report))
             }
         }
         item {

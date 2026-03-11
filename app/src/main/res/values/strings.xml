@@ -48,10 +48,34 @@
     <string name="dashboard_no_activity">No activity yet. Start resisting!</string>
     <string name="dashboard_days">days</string>
     <string name="dashboard_minutes">min</string>
+    <string name="dashboard_view_report">View Weekly Report</string>
 
     <!-- Duel -->
     <string name="duel_title">Duel</string>
+    <string name="duel_subtitle">Weekly battle — higher points wins!</string>
     <string name="duel_coming_soon">Chore Wars &amp; Wish List coming in Phase 4</string>
+    <string name="duel_tied">It\'s a tie! Keep resisting.</string>
+    <string name="duel_you_winning">You\'re in the lead!</string>
+    <string name="duel_partner_winning">%s is winning this week</string>
+    <string name="duel_your_stats">Your Stats</string>
+    <string name="duel_weekly_points">Weekly Points</string>
+    <string name="duel_total_resists">Total Resists</string>
+    <string name="duel_current_streak">Current Streak</string>
+    <string name="duel_manage_chores_wishes">Manage Chores &amp; Wishes</string>
+    <string name="duel_rules_title">How It Works</string>
+    <string name="duel_rules_body">Both start at 200 points each week. Resist apps to earn points, scroll to lose them. Monday at midnight, the person with more points wins. Loser does a chore or grants a wish!</string>
+
+    <!-- Chore / Wish -->
+    <string name="chore_wish_title">Chores &amp; Wishes</string>
+    <string name="chore_tab">Chores</string>
+    <string name="wish_tab">Wishes</string>
+    <string name="chore_empty">No chores yet. Add some for the loser to do!</string>
+    <string name="wish_empty">No wishes yet. Add something you\'d love!</string>
+    <string name="chore_add_title">Add a Chore</string>
+    <string name="wish_add_title">Add a Wish</string>
+    <string name="chore_add_hint">e.g., Do the dishes</string>
+    <string name="wish_add_hint">e.g., Breakfast in bed</string>
+    <string name="chore_wish_add">Add</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -67,6 +91,8 @@
     <string name="settings_app_management">App Management</string>
     <string name="settings_blocked_apps">Blocked Apps</string>
     <string name="settings_blocked_apps_desc">Choose which apps to monitor</string>
+    <string name="settings_overlay">Display Over Apps</string>
+    <string name="settings_overlay_desc">Required to show intervention screen on top of blocked apps</string>
 
     <!-- Blocked Apps -->
     <string name="blocked_apps_title">Blocked Apps</string>
@@ -77,19 +103,35 @@
     <string name="notification_channel_monitoring_desc">Shows when UnHook is actively monitoring</string>
     <string name="notification_monitoring_title">UnHook is active</string>
     <string name="notification_monitoring_text">Monitoring your blocked apps</string>
+    <string name="notification_channel_reports">Weekly Reports</string>
+    <string name="notification_channel_reports_desc">Weekly score summary and winner announcement</string>
 
     <!-- Accessibility Service -->
     <string name="accessibility_service_description">UnHook uses this service to detect when you open blocked social media apps, so it can show an intervention screen to help you resist.</string>
-
-    <!-- Settings — Overlay -->
-    <string name="settings_overlay">Display Over Apps</string>
-    <string name="settings_overlay_desc">Required to show intervention screen on top of blocked apps</string>
 
     <!-- Intervention -->
     <string name="intervention_opening">You\'re opening %s</string>
     <string name="intervention_resist">Resist (+10 pts)</string>
     <string name="intervention_let_me_in">Let me in (-15 pts)</string>
     <string name="intervention_wait">Wait %d seconds…</string>
+
+    <!-- Report -->
+    <string name="report_title">Weekly Report</string>
+    <string name="report_weekly_chart">7-Day Activity</string>
+    <string name="report_tied">It\'s a tie this week!</string>
+    <string name="report_you_won">You won this week!</string>
+    <string name="report_you_lost">%s won this week</string>
+    <string name="report_score_summary">You: %1$d pts vs Partner: %2$d pts</string>
+    <string name="report_stats_title">This Week\'s Stats</string>
+    <string name="report_resists">Times Resisted</string>
+    <string name="report_scrolls">Times Scrolled</string>
+    <string name="report_points_earned">Points Earned</string>
+    <string name="report_points_lost">Points Lost</string>
+    <string name="report_current_streak">Current Streak</string>
+    <string name="report_notification_won">You won this week! 🏆</string>
+    <string name="report_notification_lost">You lost this week 😅</string>
+    <string name="report_notification_tied">It\'s a tie this week! 🤝</string>
+    <string name="report_notification_body">You: %1$d pts vs Partner: %2$d pts. You resisted %3$d times.</string>
 
     <!-- Points -->
     <string name="points_resisted">Resisted %s</string>

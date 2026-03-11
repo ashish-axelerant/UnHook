@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.unhook.app.data.repository.PointsRepository
 import com.unhook.app.data.repository.UserRepository
 import com.unhook.app.navigation.UnHookNavGraph
+import com.unhook.app.notification.NotificationHelper
 import com.unhook.app.service.MonitoringForegroundService
 import com.unhook.app.ui.screens.OnboardingScreen
 import com.unhook.app.ui.theme.UnHookTheme
@@ -28,6 +29,11 @@ class MainActivity : ComponentActivity() {
         val userRepository = UserRepository(db.userDao(), db.partnerDao())
         val pointsRepository = PointsRepository(db.pointEventDao())
         val blockedAppDao = db.blockedAppDao()
+        val choreItemDao = db.choreItemDao()
+        val wishItemDao = db.wishItemDao()
+
+        // Schedule weekly workers
+        NotificationHelper.scheduleWeeklyWork(this)
 
         setContent {
             UnHookTheme {
@@ -41,7 +47,6 @@ class MainActivity : ComponentActivity() {
                                 userRepository.createUser(userName, userAvatar)
                                 userRepository.createPartner(partnerName, partnerAvatar, pairingCode)
                             }
-                            // Start monitoring after onboarding
                             startMonitoringService()
                         },
                     )
@@ -50,6 +55,8 @@ class MainActivity : ComponentActivity() {
                         userRepository = userRepository,
                         pointsRepository = pointsRepository,
                         blockedAppDao = blockedAppDao,
+                        choreItemDao = choreItemDao,
+                        wishItemDao = wishItemDao,
                     )
                 }
             }
@@ -58,7 +65,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Ensure monitoring is running when app comes to foreground
         startMonitoringService()
     }
 

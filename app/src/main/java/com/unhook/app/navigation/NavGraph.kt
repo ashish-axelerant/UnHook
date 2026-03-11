@@ -24,11 +24,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.unhook.app.R
 import com.unhook.app.data.db.BlockedAppDao
+import com.unhook.app.data.db.ChoreItemDao
+import com.unhook.app.data.db.WishItemDao
 import com.unhook.app.data.repository.PointsRepository
 import com.unhook.app.data.repository.UserRepository
 import com.unhook.app.ui.screens.BlockedAppsScreen
+import com.unhook.app.ui.screens.ChoreWishScreen
 import com.unhook.app.ui.screens.DashboardScreen
 import com.unhook.app.ui.screens.DuelScreen
+import com.unhook.app.ui.screens.ReportScreen
 import com.unhook.app.ui.screens.SettingsScreen
 
 sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector) {
@@ -44,6 +48,8 @@ fun UnHookNavGraph(
     userRepository: UserRepository,
     pointsRepository: PointsRepository,
     blockedAppDao: BlockedAppDao,
+    choreItemDao: ChoreItemDao,
+    wishItemDao: WishItemDao,
 ) {
     val navController = rememberNavController()
 
@@ -83,10 +89,17 @@ fun UnHookNavGraph(
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(Screen.Dashboard.route) {
-                DashboardScreen(userRepository = userRepository, pointsRepository = pointsRepository)
+                DashboardScreen(
+                    userRepository = userRepository,
+                    pointsRepository = pointsRepository,
+                    onNavigateToReport = { navController.navigate("report") },
+                )
             }
             composable(Screen.Duel.route) {
-                DuelScreen()
+                DuelScreen(
+                    userRepository = userRepository,
+                    onNavigateToChoreWish = { navController.navigate("chore_wish") },
+                )
             }
             composable(Screen.Settings.route) {
                 SettingsScreen(
@@ -96,6 +109,20 @@ fun UnHookNavGraph(
             composable("blocked_apps") {
                 BlockedAppsScreen(
                     blockedAppDao = blockedAppDao,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable("chore_wish") {
+                ChoreWishScreen(
+                    choreItemDao = choreItemDao,
+                    wishItemDao = wishItemDao,
+                    onBack = { navController.popBackStack() },
+                )
+            }
+            composable("report") {
+                ReportScreen(
+                    userRepository = userRepository,
+                    pointsRepository = pointsRepository,
                     onBack = { navController.popBackStack() },
                 )
             }
