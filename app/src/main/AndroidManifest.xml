@@ -19,6 +19,15 @@
     <!-- Receive boot to restart service -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- Required on Android 11+ to list installed apps for the blocked-apps picker -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <!-- Required for full-screen intervention reminder (like an alarm) -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <!-- Required for direct vibration -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:name=".UnHookApplication"
         android:allowBackup="true"

@@ -33,16 +33,21 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -68,6 +73,14 @@ fun SettingsScreen(
     var hasUsageStats by remember { mutableStateOf(false) }
     var hasNotifications by remember { mutableStateOf(false) }
     var hasOverlay by remember { mutableStateOf(false) }
+
+    val prefs = remember { context.getSharedPreferences("unhook_prefs", Context.MODE_PRIVATE) }
+    var countdownSeconds by remember { mutableIntStateOf(prefs.getInt("countdown_seconds", 5)) }
+    var showCountdownDialog by remember { mutableStateOf(false) }
+    var gracePeriodMinutes by remember { mutableIntStateOf(prefs.getInt("grace_period_minutes", 10)) }
+    var showGracePeriodDialog by remember { mutableStateOf(false) }
+    var reminderIntervalSeconds by remember { mutableIntStateOf(prefs.getInt("reminder_interval_seconds", 120)) }
+    var showReminderFreqDialog by remember { mutableStateOf(false) }
 
     // Re-check permissions when returning from system settings
     LaunchedEffect(lifecycleOwner) {
@@ -204,6 +217,281 @@ fun SettingsScreen(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        HorizontalDivider()
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Intervention settings
+        Text(
+            text = "Intervention",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showCountdownDialog = true },
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Filled.Timer,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.settings_countdown),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_countdown_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.settings_countdown_seconds, countdownSeconds),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+
+        if (showCountdownDialog) {
+            val options = listOf(3, 5, 10, 15, 30)
+            AlertDialog(
+                onDismissRequest = { showCountdownDialog = false },
+                title = { Text(stringResource(R.string.settings_countdown)) },
+                text = {
+                    Column {
+                        options.forEach { seconds ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        countdownSeconds = seconds
+                                        prefs.edit().putInt("countdown_seconds", seconds).apply()
+                                        showCountdownDialog = false
+                                    }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                RadioButton(
+                                    selected = countdownSeconds == seconds,
+                                    onClick = {
+                                        countdownSeconds = seconds
+                                        prefs.edit().putInt("countdown_seconds", seconds).apply()
+                                        showCountdownDialog = false
+                                    },
+                                )
+                                Text(
+                                    text = stringResource(R.string.settings_countdown_seconds, seconds),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { showCountdownDialog = false }) {
+                        Text("Cancel")
+                    }
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Grace period setting
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showGracePeriodDialog = true },
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Filled.Timer,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.settings_grace_period),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_grace_period_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.settings_grace_period_minutes, gracePeriodMinutes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+
+        if (showGracePeriodDialog) {
+            val options = listOf(1, 5, 10, 15, 30, 60)
+            AlertDialog(
+                onDismissRequest = { showGracePeriodDialog = false },
+                title = { Text(stringResource(R.string.settings_grace_period)) },
+                text = {
+                    Column {
+                        options.forEach { minutes ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        gracePeriodMinutes = minutes
+                                        prefs.edit().putInt("grace_period_minutes", minutes).apply()
+                                        showGracePeriodDialog = false
+                                    }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                RadioButton(
+                                    selected = gracePeriodMinutes == minutes,
+                                    onClick = {
+                                        gracePeriodMinutes = minutes
+                                        prefs.edit().putInt("grace_period_minutes", minutes).apply()
+                                        showGracePeriodDialog = false
+                                    },
+                                )
+                                Text(
+                                    text = stringResource(R.string.settings_grace_period_minutes, minutes),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { showGracePeriodDialog = false }) {
+                        Text("Cancel")
+                    }
+                },
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Reminder frequency setting
+        val reminderLabel = remember(reminderIntervalSeconds) {
+            when {
+                reminderIntervalSeconds < 60 -> "$reminderIntervalSeconds sec"
+                reminderIntervalSeconds % 60 == 0 -> "${reminderIntervalSeconds / 60} min"
+                else -> "$reminderIntervalSeconds sec"
+            }
+        }
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showReminderFreqDialog = true },
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Filled.Timer,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.settings_reminder_freq),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_reminder_freq_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = reminderLabel,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+
+        if (showReminderFreqDialog) {
+            // seconds -> display label
+            val options = listOf(30 to "30 sec", 60 to "1 min", 120 to "2 min", 300 to "5 min", 600 to "10 min")
+            AlertDialog(
+                onDismissRequest = { showReminderFreqDialog = false },
+                title = { Text(stringResource(R.string.settings_reminder_freq)) },
+                text = {
+                    Column {
+                        options.forEach { (seconds, label) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        reminderIntervalSeconds = seconds
+                                        prefs.edit().putInt("reminder_interval_seconds", seconds).apply()
+                                        showReminderFreqDialog = false
+                                    }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                RadioButton(
+                                    selected = reminderIntervalSeconds == seconds,
+                                    onClick = {
+                                        reminderIntervalSeconds = seconds
+                                        prefs.edit().putInt("reminder_interval_seconds", seconds).apply()
+                                        showReminderFreqDialog = false
+                                    },
+                                )
+                                Text(text = label, style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { showReminderFreqDialog = false }) {
+                        Text("Cancel")
+                    }
+                },
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))

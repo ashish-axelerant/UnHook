@@ -97,6 +97,24 @@
     <!-- Blocked Apps -->
     <string name="blocked_apps_title">Blocked Apps</string>
     <string name="blocked_apps_subtitle">Toggle apps you want UnHook to monitor. When you open these apps, the intervention screen will appear.</string>
+    <string name="blocked_apps_add">Add App</string>
+    <string name="blocked_apps_add_title">Add App to Block</string>
+    <string name="blocked_apps_search_hint">Search apps…</string>
+    <string name="blocked_apps_no_more">All installed apps are already added</string>
+
+    <!-- Settings - Countdown -->
+    <string name="settings_countdown">Intervention Wait Time</string>
+    <string name="settings_countdown_desc">How long before "Let me in" activates</string>
+    <string name="settings_countdown_seconds">%d seconds</string>
+
+    <!-- Settings - Grace Period -->
+    <string name="settings_grace_period">Grace Period Duration</string>
+    <string name="settings_grace_period_desc">How long "Let me in" lasts before re-triggering</string>
+    <string name="settings_grace_period_minutes">%d min</string>
+
+    <!-- Settings - Reminder Frequency -->
+    <string name="settings_reminder_freq">Reminder Frequency</string>
+    <string name="settings_reminder_freq_desc">How often reminders appear during grace period</string>
 
     <!-- Notifications -->
     <string name="notification_channel_monitoring">Monitoring</string>

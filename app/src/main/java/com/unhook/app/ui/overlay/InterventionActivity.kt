@@ -1,6 +1,7 @@
 // UnHook — Transparent activity that shows the intervention overlay on top of blocked apps
 package com.unhook.app.ui.overlay
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -35,6 +36,15 @@ class InterventionActivity : ComponentActivity() {
         lifecycleScope.launch {
             viewModel.uiState.collect { state ->
                 if (!state.isVisible && state.packageName.isNotEmpty()) {
+                    if (state.navigateHome) {
+                        // User resisted — send to Home so they don't land back in the blocked app
+                        startActivity(
+                            Intent(Intent.ACTION_MAIN).apply {
+                                addCategory(Intent.CATEGORY_HOME)
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            },
+                        )
+                    }
                     finish()
                 }
             }

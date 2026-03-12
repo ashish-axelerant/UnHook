@@ -47,13 +47,13 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 **Duration:** ~3 Claude Code sessions
 
 ### Deliverables
-- [ ] Android project created (Kotlin + Compose + Material 3)
-- [ ] Git repo initialized and pushed to GitHub
-- [ ] Bottom navigation: Dashboard / Duel / Settings
-- [ ] Onboarding screens: Name entry, avatar selection (emoji), pairing code
-- [ ] Room DB: User table, Partner table
-- [ ] Couple pairing flow: Generate code / Enter code
-- [ ] Basic dashboard shell (empty state is fine)
+- [x] Android project created (Kotlin + Compose + Material 3)
+- [x] Git repo initialized and pushed to GitHub
+- [x] Bottom navigation: Dashboard / Duel / Settings
+- [x] Onboarding screens: Name entry, avatar selection (emoji), pairing code
+- [x] Room DB: User table, Partner table
+- [x] Couple pairing flow: Generate code / Enter code
+- [x] Basic dashboard shell (empty state is fine)
 
 ### Key Files Created
 - MainActivity.kt
@@ -73,12 +73,12 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 **Duration:** ~2 Claude Code sessions
 
 ### Deliverables
-- [ ] AccessibilityService implemented and registered
-- [ ] ForegroundService keeping detection alive in background
-- [ ] Configurable blocked apps list (Twitter, Facebook, Instagram, YouTube, TikTok)
-- [ ] Settings screen: add/remove blocked apps
-- [ ] Permission request flow: Usage Stats + Accessibility + Notifications
-- [ ] Detection tested and working on real device
+- [x] AccessibilityService implemented and registered
+- [x] ForegroundService keeping detection alive in background
+- [x] Configurable blocked apps list (Twitter, Facebook, Instagram, YouTube, TikTok)
+- [x] Settings screen: add/remove blocked apps
+- [x] Permission request flow: Usage Stats + Accessibility + Notifications
+- [x] Detection tested and working on real device
 
 ### Key Files Created
 - service/UnHookAccessibilityService.kt
@@ -93,14 +93,14 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 **Duration:** ~2 Claude Code sessions
 
 ### Deliverables
-- [ ] Overlay intervention screen (SYSTEM_ALERT_WINDOW)
-- [ ] Shows: app name, current session time, YOUR points vs PARTNER points
-- [ ] 5-second countdown before "Let me in" button becomes active
-- [ ] Breathing animation during countdown
-- [ ] Custom reminder message shown (rotates from message bank)
-- [ ] "Resist (+10 pts)" button → closes overlay, awards points
-- [ ] "Let me in" button → allows app, deducts points, logs event
-- [ ] Message bank: 20 built-in messages + user can add custom ones
+- [x] Overlay intervention screen (SYSTEM_ALERT_WINDOW)
+- [x] Shows: app name, current session time, YOUR points vs PARTNER points
+- [x] 5-second countdown before "Let me in" button becomes active
+- [x] Breathing animation during countdown
+- [x] Custom reminder message shown (rotates from message bank)
+- [x] "Resist (+10 pts)" button → closes overlay, awards points
+- [x] "Let me in" button → allows app, deducts points, logs event
+- [x] Message bank: 20 built-in messages + user can add custom ones
 
 ### Key Files Created
 - ui/overlay/InterventionOverlay.kt
@@ -122,14 +122,14 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 **Duration:** ~3 Claude Code sessions
 
 ### Deliverables
-- [ ] Points calculation engine (earn/lose based on actions)
-- [ ] Points stored in Room DB with timestamps
-- [ ] Weekly score calculation (resets Monday)
-- [ ] Chore list: each partner adds up to 10 chores
-- [ ] Wish list: each partner adds up to 10 wishes
-- [ ] Weekly winner determination + notification to both phones
-- [ ] Winner picks: random chore OR specific wish from loser's lists
-- [ ] "Pending obligations" screen showing open chores/wishes
+- [x] Points calculation engine (earn/lose based on actions)
+- [x] Points stored in Room DB with timestamps
+- [x] Weekly score calculation (resets Monday)
+- [x] Chore list: each partner adds up to 10 chores
+- [x] Wish list: each partner adds up to 10 wishes
+- [x] Weekly winner determination + notification to both phones
+- [x] Winner picks: random chore OR specific wish from loser's lists
+- [x] "Pending obligations" screen showing open chores/wishes
 
 ### Points Rules
 - Resist intervention: +10 pts
@@ -156,12 +156,12 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 **Duration:** ~2 Claude Code sessions
 
 ### Deliverables
-- [ ] Weekly report notification (Sunday 8 PM) sent to both phones
-- [ ] Report shows: winner, point gap, apps resisted, streaks, obligation assigned
-- [ ] In-app weekly report screen with charts (usage over time)
-- [ ] Daily motivation notification (configurable time)
+- [x] Weekly report notification (Sunday 8 PM) sent to both phones
+- [x] Report shows: winner, point gap, apps resisted, streaks, obligation assigned
+- [x] In-app weekly report screen with charts (usage over time)
+- [x] Daily motivation notification (configurable time)
 - [ ] "Your partner just resisted Instagram!" real-time notification
-- [ ] Usage trend graph (7-day bar chart using Canvas or MPAndroidChart)
+- [x] Usage trend graph (7-day bar chart using Canvas or MPAndroidChart)
 
 ### Key Files Created
 - workers/WeeklyReportWorker.kt
@@ -178,12 +178,50 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 ### Deliverables
 - [ ] App icon designed (hook with a cross through it)
 - [ ] Splash screen
-- [ ] Streak badges (3-day, 7-day, 30-day)
+- [x] Streak badges (3-day streak bonus +50 pts)
 - [ ] Achievement system: "Iron Will" (resisted 50 times), "Team Player" etc.
-- [ ] Dark mode support
-- [ ] Haptic feedback on intervention screen
+- [x] Dark mode support
+- [x] Haptic feedback on intervention screen
 - [ ] Onboarding tutorial (first-time use)
-- [ ] Share card: "I resisted social media X times this week!" (image export)
+- [x] Share card: "I resisted social media X times this week!" (image export)
+
+---
+
+## PHASE 7 — Real Device Testing & UX Hardening
+**Goal:** Test on a real device, fix bugs found during testing, make the intervention experience genuinely uncomfortable.
+
+### Deliverables
+- [x] Wireless ADB setup (no USB cable needed) — `adb pair` + `adb connect` over WiFi
+- [x] App installed and tested on real phone (I2403) and emulator (Pixel 9a AVD)
+- [x] Fixed: "Let me in" was re-triggering the overlay immediately after dismissal
+  - Added 10-minute grace period via `UnHookAccessibilityService.tempAllowedPackages`
+  - Grace period is configurable: 1, 5, 10, 15, 30, 60 minutes
+- [x] Fixed: blocked apps list only showed hardcoded defaults
+  - Added "+" FAB to BlockedAppsScreen that loads all installed non-system apps
+  - Full search/filter support
+  - Fixed Android 11+ `QUERY_ALL_PACKAGES` permission
+- [x] Configurable intervention countdown (3, 5, 10, 15, 30 seconds) stored in SharedPreferences
+- [x] Configurable reminder frequency during grace period (30s, 1min, 2min, 5min, 10min)
+- [x] Fixed: "Resist" button was returning user to the blocked app
+  - On resist → navigates to Home screen instead of back-stacking into blocked app
+- [x] Periodic reminder notifications during grace period
+  - Heads-up notification: `⛔ Put the phone down.` with BigTextStyle
+  - `setOngoing(true)` — cannot be swiped away
+  - Direct vibration via `Vibrator` service (guaranteed regardless of DND/volume)
+  - `setFullScreenIntent` → re-launches the intervention screen mid-scroll
+  - Notification auto-cancelled when grace period ends
+- [x] Grace period auto-closes the blocked app on expiry
+  - Navigates to Home screen when grace period timer runs out
+  - Removes persistent notification on expiry
+- [x] Added `USE_FULL_SCREEN_INTENT` and `VIBRATE` permissions to manifest
+
+### Key Files Modified
+- service/UnHookAccessibilityService.kt (grace period, reminder notifications, vibration)
+- ui/overlay/InterventionActivity.kt (navigate home on resist)
+- ui/overlay/InterventionViewModel.kt (grace period config, navigateHome flag)
+- ui/screens/BlockedAppsScreen.kt (installed app picker with search)
+- ui/screens/SettingsScreen.kt (countdown, grace period, reminder frequency settings)
+- AndroidManifest.xml (QUERY_ALL_PACKAGES, USE_FULL_SCREEN_INTENT, VIBRATE)
 
 ---
 
