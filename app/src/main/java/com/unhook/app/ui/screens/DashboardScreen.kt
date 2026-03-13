@@ -2,19 +2,30 @@
 package com.unhook.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -187,7 +199,17 @@ private fun PlayerScore(
     isWinning: Boolean,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = if (isWinning) "👑" else "", fontSize = 16.sp)
+        // Fixed-height Box prevents layout shift when winning state changes
+        Box(modifier = Modifier.height(22.dp), contentAlignment = Alignment.Center) {
+            if (isWinning) {
+                Icon(
+                    imageVector = Icons.Filled.EmojiEvents,
+                    contentDescription = stringResource(R.string.cd_winning),
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
         Text(text = emoji, fontSize = 40.sp)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
@@ -213,26 +235,58 @@ private fun PlayerScore(
 private fun StatsRow(user: User?) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        StatItem(emoji = "🔥", value = "${user?.currentStreak ?: 0}", label = stringResource(R.string.dashboard_streak))
-        StatItem(emoji = "✊", value = "${user?.totalResists ?: 0}", label = stringResource(R.string.dashboard_resists_today))
-        StatItem(emoji = "⏱️", value = "0", label = stringResource(R.string.dashboard_time_saved))
+        StatItem(
+            icon = Icons.Filled.Whatshot,
+            iconDescription = stringResource(R.string.cd_streak),
+            value = "${user?.currentStreak ?: 0}",
+            label = stringResource(R.string.dashboard_streak),
+            modifier = Modifier.weight(1f),
+        )
+        StatItem(
+            icon = Icons.Filled.FitnessCenter,
+            iconDescription = stringResource(R.string.cd_resists),
+            value = "${user?.totalResists ?: 0}",
+            label = stringResource(R.string.dashboard_resists_today),
+            modifier = Modifier.weight(1f),
+        )
+        StatItem(
+            icon = Icons.Filled.Timer,
+            iconDescription = stringResource(R.string.cd_time_saved),
+            value = "0",
+            label = stringResource(R.string.dashboard_time_saved),
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
 @Composable
-private fun StatItem(emoji: String, value: String, label: String) {
+private fun StatItem(
+    icon: ImageVector,
+    iconDescription: String,
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier,
+) {
     Card(
+        modifier = modifier,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(text = emoji, fontSize = 20.sp)
+            Icon(
+                imageVector = icon,
+                contentDescription = iconDescription,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(22.dp),
+            )
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,
@@ -242,6 +296,7 @@ private fun StatItem(emoji: String, value: String, label: String) {
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -252,12 +307,19 @@ private fun ActivityItem(event: PointEvent) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 48.dp)
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = if (event.points >= 0) "✊" else "📱",
-            fontSize = 20.sp,
+        Icon(
+            imageVector = if (event.points >= 0) Icons.Filled.CheckCircle else Icons.Filled.PhoneAndroid,
+            contentDescription = if (event.points >= 0) {
+                stringResource(R.string.cd_activity_resisted)
+            } else {
+                stringResource(R.string.cd_activity_scrolled)
+            },
+            tint = if (event.points >= 0) PointsGreen else PointsRed,
+            modifier = Modifier.size(22.dp),
         )
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {

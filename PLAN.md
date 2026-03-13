@@ -259,6 +259,40 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 
 ---
 
+## PHASE 9 — Accessibility & Polish
+**Goal:** Replace all emoji with proper Material icons, fix back-button escape hatch, add reduced-motion support, and polish edge cases.
+
+### Deliverables
+- [x] Back button on intervention screen now navigates Home instead of back into the blocked app
+  - `OnBackPressedCallback` added to `InterventionActivity`
+- [x] Replaced all emoji with Material icons throughout the app
+  - `👑` crown → `Icons.Filled.EmojiEvents` with fixed-height `Box` to prevent layout shift (Dashboard, Duel, Overlay)
+  - `🔥✊⏱️` stats → `Icons.Filled.Whatshot / FitnessCenter / Timer` in stat cards
+  - `✊📱` activity items → `Icons.Filled.CheckCircle / PhoneAndroid` with semantic colors (green/red)
+  - `⚔️` vs separator → styled "VS" text with `headlineMedium + ExtraBold + primary` color
+  - `🧘` in breathing circle → `Icons.Filled.EmojiEvents` (vector, no system emoji variance)
+- [x] Reduced motion support in breathing animation
+  - Reads `Settings.Global.ANIMATOR_DURATION_SCALE`; if 0 the circle is static (1f → 1f)
+  - Easing changed from `LinearEasing` to `FastOutSlowInEasing` for a more natural breath feel
+- [x] `UsageChart` empty state + legend
+  - Shows "No data yet" placeholder when `data` list is empty
+  - Legend row beneath chart (● Earned  ● Lost) using `LegendDot` composable
+- [x] `StatItem` cards now equal-width (`Modifier.weight(1f)`) with `spacedBy(8.dp)` spacing
+- [x] Activity list rows have `heightIn(min = 48.dp)` for accessible touch targets
+- [x] Settings screen: added missing string for "Intervention" section title, fixed two icons using wrong vector (`Timer` → `HourglassBottom` / `NotificationsActive`), added content descriptions to permission state icons
+- [x] Added `/ship` project-specific command to `.claude/commands/ship.md`
+
+### Key Files Modified
+- `ui/overlay/InterventionActivity.kt` (back button → home)
+- `ui/overlay/InterventionOverlay.kt` (icons, reduced motion, easing)
+- `ui/screens/DashboardScreen.kt` (icons, stat card layout, touch targets)
+- `ui/screens/DuelScreen.kt` (crown icon, VS text)
+- `ui/screens/SettingsScreen.kt` (icon fixes, string, content descriptions)
+- `ui/components/UsageChart.kt` (empty state, legend)
+- `.claude/commands/ship.md` (new — project command)
+
+---
+
 ## Success Metrics (How You Know It's Working)
 - Both phones successfully paired
 - Intervention triggers within 2 seconds of opening a blocked app

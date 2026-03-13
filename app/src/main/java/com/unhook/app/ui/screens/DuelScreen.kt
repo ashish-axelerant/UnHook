@@ -2,6 +2,7 @@
 package com.unhook.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,16 +10,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -115,7 +118,17 @@ private fun BattleCard(user: User?, partner: Partner?) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (iAmWinning) Text("👑", fontSize = 20.sp)
+                    // Fixed-height Box prevents layout shift when winning state changes
+                    Box(modifier = Modifier.height(22.dp), contentAlignment = Alignment.Center) {
+                        if (iAmWinning) {
+                            Icon(
+                                imageVector = Icons.Filled.EmojiEvents,
+                                contentDescription = stringResource(R.string.cd_winning),
+                                tint = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
                     Text(user?.emojiAvatar ?: "😊", fontSize = 48.sp)
                     Text(
                         text = user?.name ?: "You",
@@ -131,12 +144,23 @@ private fun BattleCard(user: User?, partner: Partner?) {
                 }
 
                 Text(
-                    text = "⚔️",
-                    fontSize = 32.sp,
+                    text = stringResource(R.string.dashboard_vs),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary,
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (!iAmWinning && !isTied) Text("👑", fontSize = 20.sp)
+                    Box(modifier = Modifier.height(22.dp), contentAlignment = Alignment.Center) {
+                        if (!iAmWinning && !isTied) {
+                            Icon(
+                                imageVector = Icons.Filled.EmojiEvents,
+                                contentDescription = stringResource(R.string.cd_winning),
+                                tint = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
                     Text(partner?.emojiAvatar ?: "❓", fontSize = 48.sp)
                     Text(
                         text = partner?.name ?: "Partner",

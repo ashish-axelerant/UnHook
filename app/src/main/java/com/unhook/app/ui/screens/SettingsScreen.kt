@@ -27,12 +27,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.HourglassBottom
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.QueryStats
-import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -225,7 +227,7 @@ fun SettingsScreen(
 
         // Intervention settings
         Text(
-            text = "Intervention",
+            text = stringResource(R.string.settings_intervention_title),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -333,7 +335,7 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    Icons.Filled.Timer,
+                    Icons.Filled.HourglassBottom,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                     tint = MaterialTheme.colorScheme.primary,
@@ -427,7 +429,7 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    Icons.Filled.Timer,
+                    Icons.Filled.NotificationsActive,
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                     tint = MaterialTheme.colorScheme.primary,
@@ -590,19 +592,19 @@ private fun PermissionItem(
             when (isGranted) {
                 true -> Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.settings_permission_granted),
                     tint = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.size(24.dp),
                 )
                 false -> Icon(
                     Icons.Filled.Warning,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.settings_permission_required),
                     tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(24.dp),
                 )
                 null -> Icon(
                     Icons.AutoMirrored.Filled.OpenInNew,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.settings_open_settings),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp),
                 )

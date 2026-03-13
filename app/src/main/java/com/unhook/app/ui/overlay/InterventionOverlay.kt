@@ -1,7 +1,9 @@
 // UnHook — Intervention overlay screen with countdown, scores, and resist/let-me-in buttons
 package com.unhook.app.ui.overlay
 
-import androidx.compose.animation.core.LinearEasing
+import android.provider.Settings
+import android.view.HapticFeedbackConstants
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -21,20 +23,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import android.view.HapticFeedbackConstants
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -170,8 +176,16 @@ private fun ScoreColumn(
     isWinning: Boolean,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        if (isWinning) {
-            Text(text = "👑", fontSize = 16.sp)
+        // Fixed-height Box prevents layout shift when winning state changes
+        Box(modifier = Modifier.height(22.dp), contentAlignment = Alignment.Center) {
+            if (isWinning) {
+                Icon(
+                    imageVector = Icons.Filled.EmojiEvents,
+                    contentDescription = stringResource(R.string.cd_winning),
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
         }
         Text(text = emoji, fontSize = 36.sp)
         Spacer(modifier = Modifier.height(4.dp))
@@ -196,12 +210,23 @@ private fun ScoreColumn(
 
 @Composable
 private fun BreathingCircle(seconds: Int) {
+    val context = LocalContext.current
+    // Respect system "Animator duration scale = 0" (reduced motion preference)
+    val reducedMotion = remember {
+        Settings.Global.getFloat(
+            context.contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f,
+        ) == 0f
+    }
+
     val infiniteTransition = rememberInfiniteTransition(label = "breathing")
+    // When reduced motion is enabled, both values are 1f → no animation
     val scale by infiniteTransition.animateFloat(
-        initialValue = 0.85f,
-        targetValue = 1.15f,
+        initialValue = if (reducedMotion) 1f else 0.85f,
+        targetValue = if (reducedMotion) 1f else 1.15f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
+            animation = tween(2000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse,
         ),
         label = "breathScale",
@@ -223,9 +248,11 @@ private fun BreathingCircle(seconds: Int) {
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         } else {
-            Text(
-                text = "🧘",
-                fontSize = 40.sp,
+            Icon(
+                imageVector = Icons.Filled.EmojiEvents,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(40.dp),
             )
         }
     }
