@@ -182,7 +182,7 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 - [ ] Achievement system: "Iron Will" (resisted 50 times), "Team Player" etc.
 - [x] Dark mode support
 - [x] Haptic feedback on intervention screen
-- [ ] Onboarding tutorial (first-time use)
+- [x] Onboarding tutorial — app selection + permissions steps added to onboarding flow
 - [x] Share card: "I resisted social media X times this week!" (image export)
 
 ---
@@ -222,6 +222,40 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 - ui/screens/BlockedAppsScreen.kt (installed app picker with search)
 - ui/screens/SettingsScreen.kt (countdown, grace period, reminder frequency settings)
 - AndroidManifest.xml (QUERY_ALL_PACKAGES, USE_FULL_SCREEN_INTENT, VIBRATE)
+
+---
+
+## PHASE 8 — Onboarding UX Overhaul
+**Goal:** Remove silent setup surprises; make first-run feel intentional and polished.
+
+### Deliverables
+- [x] Removed silent blocked-app seeding on first launch (`UnHookApplication`)
+- [x] New onboarding step 3: "What should we block?" — user explicitly picks apps
+  - Scrollable list of all installed non-system apps
+  - Popular social apps pre-selected if installed (Twitter/X, Facebook, Instagram, YouTube, TikTok, Snapchat, Reddit, Pinterest, LinkedIn)
+  - Search bar with leading Search icon and clear (×) button
+  - Selected apps pinned to top under sticky "Selected · N" header
+  - Unselected apps under sticky "More Apps" header
+  - Row background animates to `primaryContainer` tint on selection
+  - Continue button disabled until ≥1 app chosen; shows count ("Continue (3 selected)")
+  - Haptic feedback on every toggle
+- [x] New onboarding step 4: "Almost there!" — in-flow permission grants
+  - 4 permission cards: Accessibility (Required), Overlay (Required), Usage Stats (Recommended), Notifications (Recommended)
+  - Each card has a soft icon circle, title, Required/Recommended badge, and "Grant" button
+  - Card background animates to `primaryContainer` tint when permission is granted
+  - Live re-check via `repeatOnLifecycle(RESUMED)` — checkmark appears the moment user returns from Settings
+  - Mini progress dots (● ● ○ ○  2 of 4 granted) in tertiary green
+  - Warning banner (`errorContainer`) visible while Accessibility or Overlay is missing
+  - Button reads "All set — let's go!" when required perms granted, "Skip for now" otherwise
+- [x] Extracted `AppIcon` composable into `ui/components/AppIcon.kt` (shared by `BlockedAppsScreen` + onboarding)
+- [x] Onboarding now 6 steps: Welcome → Profile → Pairing → Apps → Permissions → Confirmation
+
+### Key Files Created / Modified
+- `ui/components/AppIcon.kt` (new — shared launcher icon composable)
+- `ui/screens/OnboardingScreen.kt` (steps 3 & 4 added; 4→5 dots→6)
+- `UnHookApplication.kt` (removed `defaultBlockedApps` seeding)
+- `MainActivity.kt` (`onComplete` now accepts `selectedApps: Map<String, String>`)
+- `res/values/strings.xml` (11 new strings for both new steps)
 
 ---
 

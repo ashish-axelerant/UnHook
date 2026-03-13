@@ -31,6 +31,21 @@
     <string name="onboarding_partner_name_hint">Partner\'s name</string>
     <string name="onboarding_partner_avatar">Pick their avatar</string>
 
+    <!-- Onboarding — Permissions -->
+    <string name="onboarding_permissions_title">Almost there!</string>
+    <string name="onboarding_permissions_subtitle">Grant these permissions so UnHook can do its job.</string>
+    <string name="onboarding_permissions_grant">Grant</string>
+    <string name="onboarding_permissions_required">Required</string>
+    <string name="onboarding_permissions_recommended">Recommended</string>
+    <string name="onboarding_permissions_warning">Accessibility + Overlay are needed for blocking to work</string>
+    <string name="onboarding_permissions_continue_ready">All set — let\'s go!</string>
+    <string name="onboarding_permissions_continue_skip">Skip for now</string>
+
+    <!-- Onboarding — App Selection -->
+    <string name="onboarding_apps_title">What should we block?</string>
+    <string name="onboarding_apps_subtitle">Select the apps you want to resist. We\'ll step in when you open them.</string>
+    <string name="onboarding_apps_continue">Continue (%d selected)</string>
+
     <!-- Onboarding — Confirmation -->
     <string name="onboarding_all_set">You\'re all set! 🎉</string>
     <string name="onboarding_paired_with">Paired with %s</string>
@@ -116,6 +131,12 @@
     <string name="settings_reminder_freq">Reminder Frequency</string>
     <string name="settings_reminder_freq_desc">How often reminders appear during grace period</string>
 
+    <!-- Settings - Intervention section title and permission status -->
+    <string name="settings_intervention_title">Intervention Settings</string>
+    <string name="settings_permission_granted">Permission granted</string>
+    <string name="settings_permission_required">Permission required — tap to fix</string>
+    <string name="settings_open_settings">Open settings</string>
+
     <!-- Notifications -->
     <string name="notification_channel_monitoring">Monitoring</string>
     <string name="notification_channel_monitoring_desc">Shows when UnHook is actively monitoring</string>
@@ -159,4 +180,17 @@
     <!-- Points -->
     <string name="points_resisted">Resisted %s</string>
     <string name="points_scrolled">Scrolled past %s</string>
+
+    <!-- Chart -->
+    <string name="chart_legend_earned">Earned</string>
+    <string name="chart_legend_lost">Lost</string>
+    <string name="chart_no_data">No activity this week</string>
+
+    <!-- Accessibility descriptions -->
+    <string name="cd_winning">Winning</string>
+    <string name="cd_streak">Streak</string>
+    <string name="cd_resists">Resists</string>
+    <string name="cd_time_saved">Time saved</string>
+    <string name="cd_activity_resisted">Resisted</string>
+    <string name="cd_activity_scrolled">Scrolled</string>
 </resources>

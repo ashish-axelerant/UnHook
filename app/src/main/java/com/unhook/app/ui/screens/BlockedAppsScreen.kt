@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,22 +47,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.unhook.app.R
 import com.unhook.app.data.db.BlockedAppDao
 import com.unhook.app.data.model.BlockedApp
+import com.unhook.app.ui.components.AppIcon
+import com.unhook.app.service.UnHookAccessibilityService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-private val defaultAppEmojis = mapOf(
-    "com.twitter.android" to "🐦",
-    "com.facebook.katana" to "📘",
-    "com.instagram.android" to "📷",
-    "com.google.android.youtube" to "▶️",
-    "com.zhiliaoapp.musically" to "🎵",
-    "com.snapchat.android" to "👻",
-)
 
 data class InstalledAppInfo(
     val packageName: String,
@@ -115,15 +108,16 @@ fun BlockedAppsScreen(
             items(apps, key = { it.packageName }) { app ->
                 BlockedAppItem(
                     app = app,
-                    emoji = defaultAppEmojis[app.packageName] ?: "📱",
                     onToggle = { enabled ->
                         scope.launch(Dispatchers.IO) {
                             blockedAppDao.update(app.copy(isEnabled = enabled))
+                            UnHookAccessibilityService.instance?.refreshBlockedApps()
                         }
                     },
                     onDelete = {
                         scope.launch(Dispatchers.IO) {
                             blockedAppDao.delete(app)
+                            UnHookAccessibilityService.instance?.refreshBlockedApps()
                         }
                     },
                 )
@@ -145,6 +139,7 @@ fun BlockedAppsScreen(
                             isEnabled = true,
                         ),
                     )
+                    UnHookAccessibilityService.instance?.refreshBlockedApps()
                 }
                 showAddDialog = false
             },
@@ -232,20 +227,28 @@ private fun AddAppDialog(
                                 ),
                                 onClick = { onAdd(appInfo) },
                             ) {
-                                Column(
+                                Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Text(
-                                        text = appInfo.appName,
-                                        style = MaterialTheme.typography.bodyLarge,
+                                    AppIcon(
+                                        packageName = appInfo.packageName,
+                                        modifier = Modifier.size(36.dp),
                                     )
-                                    Text(
-                                        text = appInfo.packageName,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            text = appInfo.appName,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                        )
+                                        Text(
+                                            text = appInfo.packageName,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -263,7 +266,6 @@ private fun AddAppDialog(
 @Composable
 private fun BlockedAppItem(
     app: BlockedApp,
-    emoji: String,
     onToggle: (Boolean) -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -278,7 +280,7 @@ private fun BlockedAppItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = emoji, fontSize = 28.sp)
+            AppIcon(packageName = app.packageName, modifier = Modifier.size(40.dp))
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -298,3 +300,4 @@ private fun BlockedAppItem(
         }
     }
 }
+

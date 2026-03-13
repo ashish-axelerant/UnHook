@@ -9,11 +9,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import com.unhook.app.data.model.BlockedApp
 import com.unhook.app.data.repository.PointsRepository
 import com.unhook.app.data.repository.UserRepository
 import com.unhook.app.navigation.UnHookNavGraph
 import com.unhook.app.notification.NotificationHelper
 import com.unhook.app.service.MonitoringForegroundService
+import com.unhook.app.service.UnHookAccessibilityService
 import com.unhook.app.ui.screens.OnboardingScreen
 import com.unhook.app.ui.theme.UnHookTheme
 import kotlinx.coroutines.Dispatchers
@@ -42,10 +44,14 @@ class MainActivity : ComponentActivity() {
 
                 if (user == null) {
                     OnboardingScreen(
-                        onComplete = { userName, userAvatar, partnerName, partnerAvatar, pairingCode ->
+                        onComplete = { userName, userAvatar, partnerName, partnerAvatar, pairingCode, selectedApps ->
                             scope.launch(Dispatchers.IO) {
                                 userRepository.createUser(userName, userAvatar)
                                 userRepository.createPartner(partnerName, partnerAvatar, pairingCode)
+                                selectedApps.forEach { (pkg, name) ->
+                                    blockedAppDao.insert(BlockedApp(pkg, name, isEnabled = true))
+                                }
+                                UnHookAccessibilityService.instance?.refreshBlockedApps()
                             }
                             startMonitoringService()
                         },

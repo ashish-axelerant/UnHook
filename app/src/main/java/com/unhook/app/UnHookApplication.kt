@@ -3,7 +3,6 @@ package com.unhook.app
 
 import android.app.Application
 import com.unhook.app.data.db.AppDatabase
-import com.unhook.app.data.model.BlockedApp
 import com.unhook.app.data.model.ReminderMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,11 +21,6 @@ class UnHookApplication : Application() {
 
     private fun seedDefaults() {
         appScope.launch {
-            val blockedDao = database.blockedAppDao()
-            if (blockedDao.count() == 0) {
-                defaultBlockedApps.forEach { blockedDao.insert(it) }
-            }
-
             val messageDao = database.reminderMessageDao()
             if (messageDao.count() == 0) {
                 defaultMessages.forEach { messageDao.insert(it) }
@@ -35,15 +29,6 @@ class UnHookApplication : Application() {
     }
 
     companion object {
-        val defaultBlockedApps = listOf(
-            BlockedApp("com.twitter.android", "Twitter / X"),
-            BlockedApp("com.facebook.katana", "Facebook"),
-            BlockedApp("com.instagram.android", "Instagram"),
-            BlockedApp("com.google.android.youtube", "YouTube"),
-            BlockedApp("com.zhiliaoapp.musically", "TikTok"),
-            BlockedApp("com.snapchat.android", "Snapchat"),
-        )
-
         val defaultMessages = listOf(
             ReminderMessage(text = "Is the scroll worth the chore?"),
             ReminderMessage(text = "Your partner is watching your score right now"),
