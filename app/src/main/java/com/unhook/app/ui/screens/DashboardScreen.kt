@@ -1,6 +1,22 @@
-// UnHook — Dashboard with VS score card, stats row, and activity feed
+// UnHook — Dashboard with VS score card, stats row, activity feed, and fluid animations
 package com.unhook.app.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +31,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -29,10 +47,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,11 +68,14 @@ import com.unhook.app.data.model.PointEvent
 import com.unhook.app.data.model.User
 import com.unhook.app.data.repository.PointsRepository
 import com.unhook.app.data.repository.UserRepository
-import com.unhook.app.ui.theme.PointsGreen
-import com.unhook.app.ui.theme.PointsRed
+import com.unhook.app.ui.theme.pointsNegativeColor
+import com.unhook.app.ui.theme.pointsPositiveColor
+import com.unhook.app.ui.theme.pressScale
+import com.unhook.app.ui.theme.rememberReducedMotion
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 private val motivationalMessages = listOf(
     "Every resist makes you stronger 💪",
@@ -72,8 +98,30 @@ fun DashboardScreen(
     val recentEvents by (user?.let { pointsRepository.getRecentEvents(it.id) }
         ?: kotlinx.coroutines.flow.flowOf(emptyList())).collectAsState(initial = emptyList())
 
+    val reducedMotion = rememberReducedMotion()
+
     val dayOfYear = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_YEAR)
     val todayMessage = motivationalMessages[dayOfYear % motivationalMessages.size]
+
+    // Screen-entry stagger
+    var scoreVisible by remember { mutableStateOf(false) }
+    var statsVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        scoreVisible = true
+        delay(150)
+        statsVisible = true
+    }
+
+    val scoreEnter = if (reducedMotion) EnterTransition.None
+    else fadeIn(tween(300)) + slideInVertically(
+        initialOffsetY = { it / 4 },
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessMediumLow),
+    )
+    val statsEnter = if (reducedMotion) EnterTransition.None
+    else fadeIn(tween(300)) + slideInVertically(
+        initialOffsetY = { it / 4 },
+        animationSpec = spring(dampingRatio = 0.75f, stiffness = Spring.StiffnessMediumLow),
+    )
 
     LazyColumn(
         modifier = Modifier
@@ -86,10 +134,14 @@ fun DashboardScreen(
             DashboardHeader()
         }
         item {
-            ScoreCard(user = user, partner = partner)
+            AnimatedVisibility(visible = scoreVisible, enter = scoreEnter) {
+                ScoreCard(user = user, partner = partner, reducedMotion = reducedMotion)
+            }
         }
         item {
-            StatsRow(user = user)
+            AnimatedVisibility(visible = statsVisible, enter = statsEnter) {
+                StatsRow(user = user, reducedMotion = reducedMotion)
+            }
         }
         item {
             Text(
@@ -99,22 +151,24 @@ fun DashboardScreen(
         }
         if (recentEvents.isEmpty()) {
             item {
-                Text(
-                    text = stringResource(R.string.dashboard_no_activity),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                EmptyActivityState()
             }
         } else {
-            items(recentEvents) { event ->
-                ActivityItem(event = event)
+            items(recentEvents, key = { it.id }) { event ->
+                ActivityItem(
+                    event = event,
+                    modifier = Modifier.animateItem(
+                        fadeInSpec = if (reducedMotion) null else tween(200),
+                        placementSpec = if (reducedMotion) null else spring(stiffness = Spring.StiffnessMediumLow),
+                    ),
+                )
             }
         }
         item {
             androidx.compose.material3.OutlinedButton(
                 onClick = onNavigateToReport,
                 modifier = Modifier.fillMaxWidth(),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Text(stringResource(R.string.dashboard_view_report))
             }
@@ -151,9 +205,12 @@ private fun DashboardHeader() {
 }
 
 @Composable
-private fun ScoreCard(user: User?, partner: Partner?) {
+private fun ScoreCard(user: User?, partner: Partner?, reducedMotion: Boolean) {
+    val reducedMotionForCard = reducedMotion
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .pressScale(reducedMotionForCard),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
         ),
@@ -165,27 +222,26 @@ private fun ScoreCard(user: User?, partner: Partner?) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Your side
             PlayerScore(
                 emoji = user?.emojiAvatar ?: "😊",
                 name = user?.name ?: "You",
                 points = user?.weeklyPoints ?: 200,
                 isWinning = (user?.weeklyPoints ?: 200) > (partner?.weeklyPoints ?: 200),
+                reducedMotion = reducedMotion,
             )
 
-            // VS
             Text(
                 text = stringResource(R.string.dashboard_vs),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
 
-            // Partner side
             PlayerScore(
                 emoji = partner?.emojiAvatar ?: "❓",
                 name = partner?.name ?: "Partner",
                 points = partner?.weeklyPoints ?: 200,
                 isWinning = (partner?.weeklyPoints ?: 200) > (user?.weeklyPoints ?: 200),
+                reducedMotion = reducedMotion,
             )
         }
     }
@@ -197,17 +253,43 @@ private fun PlayerScore(
     name: String,
     points: Int,
     isWinning: Boolean,
+    reducedMotion: Boolean,
 ) {
+    // Animated score count-up
+    val animatedPoints by animateIntAsState(
+        targetValue = points,
+        animationSpec = if (reducedMotion) snap() else tween(800, easing = FastOutSlowInEasing),
+        label = "scoreCount",
+    )
+
+    // Winning pulse on trophy icon alpha
+    val infiniteTransition = rememberInfiniteTransition(label = "winPulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = if (isWinning && !reducedMotion) 0.6f else 1f,
+        targetValue = if (isWinning && !reducedMotion) 1.0f else 1f,
+        animationSpec = infiniteRepeatable(tween(1200), RepeatMode.Reverse),
+        label = "winAlpha",
+    )
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        // Fixed-height Box prevents layout shift when winning state changes
-        Box(modifier = Modifier.height(22.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.height(28.dp), contentAlignment = Alignment.Center) {
             if (isWinning) {
-                Icon(
-                    imageVector = Icons.Filled.EmojiEvents,
-                    contentDescription = stringResource(R.string.cd_winning),
-                    tint = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.size(20.dp),
-                )
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(
+                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = pulseAlpha),
+                            CircleShape,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.EmojiEvents,
+                        contentDescription = stringResource(R.string.cd_winning),
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
             }
         }
         Text(text = emoji, fontSize = 40.sp)
@@ -218,7 +300,7 @@ private fun PlayerScore(
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
         Text(
-            text = "$points",
+            text = "$animatedPoints",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -232,7 +314,18 @@ private fun PlayerScore(
 }
 
 @Composable
-private fun StatsRow(user: User?) {
+private fun StatsRow(user: User?, reducedMotion: Boolean) {
+    val animatedStreak by animateIntAsState(
+        targetValue = user?.currentStreak ?: 0,
+        animationSpec = if (reducedMotion) snap() else tween(800, easing = FastOutSlowInEasing),
+        label = "streakCount",
+    )
+    val animatedResists by animateIntAsState(
+        targetValue = user?.totalResists ?: 0,
+        animationSpec = if (reducedMotion) snap() else tween(800, easing = FastOutSlowInEasing),
+        label = "resistCount",
+    )
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -240,23 +333,23 @@ private fun StatsRow(user: User?) {
         StatItem(
             icon = Icons.Filled.Whatshot,
             iconDescription = stringResource(R.string.cd_streak),
-            value = "${user?.currentStreak ?: 0}",
+            value = "$animatedStreak",
             label = stringResource(R.string.dashboard_streak),
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).pressScale(reducedMotion),
         )
         StatItem(
             icon = Icons.Filled.FitnessCenter,
             iconDescription = stringResource(R.string.cd_resists),
-            value = "${user?.totalResists ?: 0}",
+            value = "$animatedResists",
             label = stringResource(R.string.dashboard_resists_today),
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).pressScale(reducedMotion),
         )
         StatItem(
             icon = Icons.Filled.Timer,
             iconDescription = stringResource(R.string.cd_time_saved),
             value = "0",
             label = stringResource(R.string.dashboard_time_saved),
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).pressScale(reducedMotion),
         )
     }
 }
@@ -303,9 +396,48 @@ private fun StatItem(
 }
 
 @Composable
-private fun ActivityItem(event: PointEvent) {
-    Row(
+private fun EmptyActivityState() {
+    Column(
         modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(text = "🌱", fontSize = 56.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.dashboard_no_activity_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = stringResource(R.string.dashboard_no_activity_desc),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun ActivityItem(event: PointEvent, modifier: Modifier = Modifier) {
+    val positiveColor = pointsPositiveColor()
+    val negativeColor = pointsNegativeColor()
+
+    // Points delta bounce-in scale
+    var targetScale by remember(event.id) { mutableStateOf(0f) }
+    LaunchedEffect(event.id) { targetScale = 1f }
+    val deltaScale by animateFloatAsState(
+        targetValue = targetScale,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessHigh,
+        ),
+        label = "deltaScale",
+    )
+
+    Row(
+        modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .padding(vertical = 4.dp),
@@ -318,7 +450,7 @@ private fun ActivityItem(event: PointEvent) {
             } else {
                 stringResource(R.string.cd_activity_scrolled)
             },
-            tint = if (event.points >= 0) PointsGreen else PointsRed,
+            tint = if (event.points >= 0) positiveColor else negativeColor,
             modifier = Modifier.size(22.dp),
         )
         Spacer(modifier = Modifier.width(12.dp))
@@ -337,7 +469,8 @@ private fun ActivityItem(event: PointEvent) {
             text = if (event.points >= 0) "+${event.points}" else "${event.points}",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = if (event.points >= 0) PointsGreen else PointsRed,
+            color = if (event.points >= 0) positiveColor else negativeColor,
+            modifier = Modifier.scale(deltaScale),
         )
     }
 }

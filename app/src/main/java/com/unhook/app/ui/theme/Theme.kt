@@ -1,4 +1,4 @@
-// UnHook — Material 3 theme with light and dark color schemes
+// UnHook — Material 3 theme with WCAG AA-compliant light and dark color schemes
 package com.unhook.app.ui.theme
 
 import android.app.Activity
@@ -8,22 +8,27 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = Coral,
-    onPrimary = androidx.compose.ui.graphics.Color.White,
-    primaryContainer = CoralLight,
-    onPrimaryContainer = CoralDark,
-    secondary = Teal,
-    onSecondary = androidx.compose.ui.graphics.Color.White,
+    // primary: CoralDeep gives 5.00:1 on white — old Coral was 3.28:1 FAIL
+    primary = CoralDeep,
+    onPrimary = Color.White,
+    // primaryContainer: soft pink tonal bg — old CoralLight had 2.53:1 FAIL
+    primaryContainer = CoralContainer,
+    onPrimaryContainer = OnSurfaceLight,  // 13.26:1 on CoralContainer
+    // secondary: TealDark gives 7.58:1 on white — old Teal was 4.32:1 FAIL
+    secondary = TealDark,
+    onSecondary = Color.White,
     secondaryContainer = TealLight,
     onSecondaryContainer = TealDark,
     tertiary = Amber,
-    onTertiary = androidx.compose.ui.graphics.Color.Black,
+    onTertiary = Color.Black,
     tertiaryContainer = AmberLight,
-    onTertiaryContainer = AmberDark,
+    // onTertiaryContainer: warm brown 6.60:1 on AmberLight — old AmberDark was 1.99:1 FAIL
+    onTertiaryContainer = OnAmberContainer,
     surface = Surface,
     onSurface = OnSurfaceLight,
     background = Surface,
@@ -32,16 +37,19 @@ private val LightColorScheme = lightColorScheme(
 
 private val DarkColorScheme = darkColorScheme(
     primary = CoralLight,
-    onPrimary = CoralDark,
-    primaryContainer = CoralDark,
-    onPrimaryContainer = CoralLight,
+    // onPrimary: SurfaceDark on CoralLight = 6.77:1 — old CoralDark was 2.07:1 FAIL
+    onPrimary = CoralDarkOnPrimary,
+    primaryContainer = DarkPrimaryContainer,
+    onPrimaryContainer = DarkOnPrimaryContainer,
     secondary = TealLight,
     onSecondary = TealDark,
     secondaryContainer = TealDark,
     onSecondaryContainer = TealLight,
     tertiary = AmberLight,
-    onTertiary = AmberDark,
-    tertiaryContainer = AmberDark,
+    // onTertiary: dark amber/brown passes on AmberLight
+    onTertiary = DarkOnTertiary,
+    tertiaryContainer = DarkTertiaryContainer,
+    // onTertiaryContainer: AmberLight gives high contrast on dark amber bg
     onTertiaryContainer = AmberLight,
     surface = SurfaceDark,
     onSurface = OnSurfaceDark,

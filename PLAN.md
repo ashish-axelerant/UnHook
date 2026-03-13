@@ -293,6 +293,45 @@ addictive social media apps. Uses a gamified points system (Mix mode: Chore Wars
 
 ---
 
+## PHASE 10 — Color, Contrast & Fluid Animations
+**Goal:** Fix all WCAG AA contrast failures and add Compose-native animations throughout the app.
+
+### Deliverables
+- [x] WCAG AA contrast fixes — `Color.kt`: new `CoralDeep`, `CoralContainer`, `OnAmberContainer`, `PointsGreenDark`, `PointsRedDark`, dark-mode variants
+- [x] `Theme.kt` — rewired both `LightColorScheme` and `DarkColorScheme` for AA compliance (primary, primaryContainer, secondary, tertiaryContainer tokens)
+- [x] Adaptive semantic helpers — `pointsPositiveColor()` / `pointsNegativeColor()` switch green/red between light and dark modes
+- [x] Trophy icon contrast fix — wrapped `EmojiEvents` in a `tertiaryContainer` circle background everywhere (Dashboard, Duel, Overlay)
+- [x] `MotionUtils.kt` (new) — shared `rememberReducedMotion()` + `pressScale()` modifier
+- [x] Score count-up animation — `animateIntAsState` (800ms, FastOutSlowIn) on player scores in Dashboard + Duel
+- [x] Screen-entry stagger — `AnimatedVisibility` with `LaunchedEffect` + 150ms delay on stat row (Dashboard)
+- [x] List stagger — `animateItem()` with `fadeInSpec + placementSpec` on activity `LazyColumn` (Dashboard)
+- [x] Points delta bounce — `animateFloatAsState` spring scale on each activity row's delta text (Dashboard)
+- [x] Winning trophy pulse — infinite `alpha` 0.6↔1.0 (1200ms reverse) on leading player's trophy icon (Dashboard, Duel)
+- [x] `pressScale` micro-interaction applied to all cards (Dashboard, Duel, ChoreWish, Settings)
+- [x] Intervention overlay: `fadeIn + scaleIn(0.95f)` screen entry, `AnimatedContent` countdown per-tick, infinite resist button scale pulse
+- [x] `InterventionOverlay.kt` now uses shared `rememberReducedMotion()` instead of inline pattern
+- [x] Tab `AnimatedContent` slide — `slideInHorizontally ± 1/3 + fadeIn` on ChoreWish tab switch
+- [x] Nav screen transitions — bottom tabs: `fadeIn/fadeOut`; detail screens: `slideInHorizontally` from right on push, slide out on pop
+- [x] Onboarding progress dots — `animateDpAsState` size (8dp→10dp) + `animateColorAsState` tint on active step
+- [x] Emoji empty states — `DashboardScreen`, `ChoreWishScreen` (Chores + Wishes) with large emoji + title + subtitle
+- [x] All animations degrade to `snap()` / `EnterTransition.None` when `reducedMotion = true`
+
+### Key Files Created / Modified
+- `ui/theme/Color.kt` (new constants + adaptive helpers)
+- `ui/theme/Theme.kt` (WCAG AA scheme wiring)
+- `ui/theme/MotionUtils.kt` (new — `rememberReducedMotion` + `pressScale`)
+- `ui/screens/DashboardScreen.kt` (stagger, count-up, pulse, animateItem, delta bounce, empty state)
+- `ui/screens/DuelScreen.kt` (count-up, trophy pulse, pressScale)
+- `ui/screens/ReportScreen.kt` (adaptive semantic colors)
+- `ui/overlay/InterventionOverlay.kt` (entry animation, countdown AnimatedContent, resist pulse, shared reducedMotion)
+- `ui/components/UsageChart.kt` (adaptive semantic colors)
+- `ui/screens/ChoreWishScreen.kt` (tab AnimatedContent, pressScale, emoji empty states)
+- `navigation/NavGraph.kt` (per-route and NavHost-level transitions)
+- `ui/screens/OnboardingScreen.kt` (animated progress dots)
+- `res/values/strings.xml` (6 new empty-state strings)
+
+---
+
 ## Success Metrics (How You Know It's Working)
 - Both phones successfully paired
 - Intervention triggers within 2 seconds of opening a blocked app

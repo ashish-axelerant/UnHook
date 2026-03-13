@@ -61,6 +61,8 @@
     <string name="dashboard_time_saved">Time saved</string>
     <string name="dashboard_recent_activity">Recent Activity</string>
     <string name="dashboard_no_activity">No activity yet. Start resisting!</string>
+    <string name="dashboard_no_activity_title">Nothing here yet</string>
+    <string name="dashboard_no_activity_desc">Open a blocked app and resist — your first victory will appear here!</string>
     <string name="dashboard_days">days</string>
     <string name="dashboard_minutes">min</string>
     <string name="dashboard_view_report">View Weekly Report</string>
@@ -85,7 +87,11 @@
     <string name="chore_tab">Chores</string>
     <string name="wish_tab">Wishes</string>
     <string name="chore_empty">No chores yet. Add some for the loser to do!</string>
+    <string name="chore_empty_title">No chores yet</string>
+    <string name="chore_empty_desc">Add chores the loser must do — dishes, laundry, anything goes!</string>
     <string name="wish_empty">No wishes yet. Add something you\'d love!</string>
+    <string name="wish_empty_title">No wishes yet</string>
+    <string name="wish_empty_desc">Add wishes you\'d love to be granted — breakfast in bed, movie night, you decide!</string>
     <string name="chore_add_title">Add a Chore</string>
     <string name="wish_add_title">Add a Wish</string>
     <string name="chore_add_hint">e.g., Do the dishes</string>

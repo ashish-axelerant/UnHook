@@ -11,6 +11,9 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -133,14 +136,21 @@ fun OnboardingScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 repeat(6) { index ->
+                    val dotSize by animateDpAsState(
+                        targetValue = if (index == step) 10.dp else 8.dp,
+                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                        label = "dot_$index",
+                    )
+                    val dotColor by animateColorAsState(
+                        targetValue = if (index <= step) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant,
+                        label = "dotColor_$index",
+                    )
                     Box(
                         modifier = Modifier
-                            .size(if (index == step) 10.dp else 8.dp)
+                            .size(dotSize)
                             .clip(CircleShape)
-                            .background(
-                                if (index <= step) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceVariant,
-                            ),
+                            .background(dotColor),
                     )
                     if (index < 5) Spacer(modifier = Modifier.width(8.dp))
                 }

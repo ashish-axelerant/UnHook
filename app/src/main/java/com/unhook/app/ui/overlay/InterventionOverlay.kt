@@ -1,14 +1,24 @@
 // UnHook — Intervention overlay screen with countdown, scores, and resist/let-me-in buttons
 package com.unhook.app.ui.overlay
 
-import android.provider.Settings
 import android.view.HapticFeedbackConstants
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,12 +44,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,8 +55,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.unhook.app.R
-import com.unhook.app.ui.theme.PointsGreen
-import com.unhook.app.ui.theme.PointsRed
+import com.unhook.app.ui.theme.pointsPositiveColor
+import com.unhook.app.ui.theme.rememberReducedMotion
 
 @Composable
 fun InterventionOverlay(
@@ -56,113 +64,124 @@ fun InterventionOverlay(
 ) {
     val state by viewModel.uiState.collectAsState()
     val view = LocalView.current
+    val reducedMotion = rememberReducedMotion()
+    val resistColor = pointsPositiveColor()
 
-    if (!state.isVisible) return
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.97f)),
-        contentAlignment = Alignment.Center,
+    AnimatedVisibility(
+        visible = state.isVisible,
+        enter = if (reducedMotion) fadeIn() else fadeIn(tween(300)) + scaleIn(initialScale = 0.95f),
+        exit = fadeOut(tween(200)),
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.97f)),
+            contentAlignment = Alignment.Center,
         ) {
-            // App name being blocked
-            Text(
-                text = stringResource(R.string.intervention_opening, state.appName),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // VS Score card
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                ScoreColumn(
-                    emoji = state.myEmoji,
-                    name = state.myName,
-                    points = state.myPoints,
-                    isWinning = state.myPoints > state.partnerPoints,
-                )
                 Text(
-                    text = stringResource(R.string.dashboard_vs),
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = stringResource(R.string.intervention_opening, state.appName),
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                ScoreColumn(
-                    emoji = state.partnerEmoji,
-                    name = state.partnerName,
-                    points = state.partnerPoints,
-                    isWinning = state.partnerPoints > state.myPoints,
-                )
-            }
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // Breathing animation circle with countdown
-            BreathingCircle(seconds = state.countdownSeconds)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ScoreColumn(
+                        emoji = state.myEmoji,
+                        name = state.myName,
+                        points = state.myPoints,
+                        isWinning = state.myPoints > state.partnerPoints,
+                    )
+                    Text(
+                        text = stringResource(R.string.dashboard_vs),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    ScoreColumn(
+                        emoji = state.partnerEmoji,
+                        name = state.partnerName,
+                        points = state.partnerPoints,
+                        isWinning = state.partnerPoints > state.myPoints,
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-            // Reminder message
-            Text(
-                text = state.reminderMessage,
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(horizontal = 16.dp),
-            )
+                BreathingCircle(seconds = state.countdownSeconds, reducedMotion = reducedMotion)
 
-            Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // Resist button (always active)
-            Button(
-                onClick = {
-                    view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-                    viewModel.onResist()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PointsGreen,
-                ),
-            ) {
                 Text(
-                    text = stringResource(R.string.intervention_resist),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    text = state.reminderMessage,
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-            // Let me in button (active after countdown)
-            OutlinedButton(
-                onClick = {
-                    view.performHapticFeedback(HapticFeedbackConstants.REJECT)
-                    viewModel.onLetMeIn()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = state.canLetIn,
-                shape = RoundedCornerShape(12.dp),
-            ) {
-                Text(
-                    text = if (state.canLetIn) {
-                        stringResource(R.string.intervention_let_me_in)
-                    } else {
-                        stringResource(R.string.intervention_wait, state.countdownSeconds)
+                // Resist button with gentle pulse to draw the eye
+                val infiniteTransition = rememberInfiniteTransition(label = "resistPulse")
+                val resistScale by infiniteTransition.animateFloat(
+                    initialValue = if (reducedMotion) 1f else 1f,
+                    targetValue = if (reducedMotion) 1f else 1.02f,
+                    animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+                    label = "resistScale",
+                )
+
+                Button(
+                    onClick = {
+                        view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                        viewModel.onResist()
                     },
-                    style = MaterialTheme.typography.titleMedium,
-                )
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .scale(resistScale),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = resistColor,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.intervention_resist),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+                        viewModel.onLetMeIn()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = state.canLetIn,
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                    Text(
+                        text = if (state.canLetIn) {
+                            stringResource(R.string.intervention_let_me_in)
+                        } else {
+                            stringResource(R.string.intervention_wait, state.countdownSeconds)
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
             }
         }
     }
@@ -176,15 +195,21 @@ private fun ScoreColumn(
     isWinning: Boolean,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        // Fixed-height Box prevents layout shift when winning state changes
         Box(modifier = Modifier.height(22.dp), contentAlignment = Alignment.Center) {
             if (isWinning) {
-                Icon(
-                    imageVector = Icons.Filled.EmojiEvents,
-                    contentDescription = stringResource(R.string.cd_winning),
-                    tint = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.size(20.dp),
-                )
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(MaterialTheme.colorScheme.tertiaryContainer, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.EmojiEvents,
+                        contentDescription = stringResource(R.string.cd_winning),
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
             }
         }
         Text(text = emoji, fontSize = 36.sp)
@@ -209,19 +234,8 @@ private fun ScoreColumn(
 }
 
 @Composable
-private fun BreathingCircle(seconds: Int) {
-    val context = LocalContext.current
-    // Respect system "Animator duration scale = 0" (reduced motion preference)
-    val reducedMotion = remember {
-        Settings.Global.getFloat(
-            context.contentResolver,
-            Settings.Global.ANIMATOR_DURATION_SCALE,
-            1f,
-        ) == 0f
-    }
-
+private fun BreathingCircle(seconds: Int, reducedMotion: Boolean) {
     val infiniteTransition = rememberInfiniteTransition(label = "breathing")
-    // When reduced motion is enabled, both values are 1f → no animation
     val scale by infiniteTransition.animateFloat(
         initialValue = if (reducedMotion) 1f else 0.85f,
         targetValue = if (reducedMotion) 1f else 1.15f,
@@ -241,12 +255,22 @@ private fun BreathingCircle(seconds: Int) {
         contentAlignment = Alignment.Center,
     ) {
         if (seconds > 0) {
-            Text(
-                text = "$seconds",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
+            // Animated countdown: each new second slides in from below
+            AnimatedContent(
+                targetState = seconds,
+                transitionSpec = {
+                    (slideInVertically { it } + fadeIn(tween(150))) togetherWith
+                        (slideOutVertically { -it } + fadeOut(tween(100)))
+                },
+                label = "countdown",
+            ) { s ->
+                Text(
+                    text = "$s",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
         } else {
             Icon(
                 imageVector = Icons.Filled.EmojiEvents,

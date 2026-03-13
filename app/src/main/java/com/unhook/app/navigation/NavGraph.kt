@@ -1,6 +1,11 @@
-// UnHook — Navigation graph with bottom navigation bar
+// UnHook — Navigation graph with bottom navigation bar and screen transition animations
 package com.unhook.app.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -42,6 +47,7 @@ sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector)
 }
 
 private val bottomNavItems = listOf(Screen.Dashboard, Screen.Duel, Screen.Settings)
+private val bottomNavRoutes = bottomNavItems.map { it.route }.toSet()
 
 @Composable
 fun UnHookNavGraph(
@@ -58,8 +64,7 @@ fun UnHookNavGraph(
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
 
-            // Hide bottom bar on sub-screens
-            if (currentRoute in bottomNavItems.map { it.route }) {
+            if (currentRoute in bottomNavRoutes) {
                 NavigationBar {
                     val currentDestination = navBackStackEntry?.destination
 
@@ -87,6 +92,11 @@ fun UnHookNavGraph(
             navController = navController,
             startDestination = Screen.Dashboard.route,
             modifier = Modifier.padding(innerPadding),
+            // Bottom nav tabs: fade only (no directional slide — tabs have no natural direction)
+            enterTransition = { fadeIn(tween(220)) },
+            exitTransition = { fadeOut(tween(180)) },
+            popEnterTransition = { fadeIn(tween(220)) },
+            popExitTransition = { fadeOut(tween(180)) },
         ) {
             composable(Screen.Dashboard.route) {
                 DashboardScreen(
@@ -106,20 +116,39 @@ fun UnHookNavGraph(
                     onNavigateToBlockedApps = { navController.navigate("blocked_apps") },
                 )
             }
-            composable("blocked_apps") {
+            // Detail screens: slide in from right on push, slide out to right on pop
+            composable(
+                "blocked_apps",
+                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(250)) { it } + fadeOut(tween(250)) },
+                popEnterTransition = { fadeIn(tween(220)) },
+                popExitTransition = { slideOutHorizontally(tween(250)) { it } + fadeOut(tween(250)) },
+            ) {
                 BlockedAppsScreen(
                     blockedAppDao = blockedAppDao,
                     onBack = { navController.popBackStack() },
                 )
             }
-            composable("chore_wish") {
+            composable(
+                "chore_wish",
+                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(250)) { it } + fadeOut(tween(250)) },
+                popEnterTransition = { fadeIn(tween(220)) },
+                popExitTransition = { slideOutHorizontally(tween(250)) { it } + fadeOut(tween(250)) },
+            ) {
                 ChoreWishScreen(
                     choreItemDao = choreItemDao,
                     wishItemDao = wishItemDao,
                     onBack = { navController.popBackStack() },
                 )
             }
-            composable("report") {
+            composable(
+                "report",
+                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(250)) { it } + fadeOut(tween(250)) },
+                popEnterTransition = { fadeIn(tween(220)) },
+                popExitTransition = { slideOutHorizontally(tween(250)) { it } + fadeOut(tween(250)) },
+            ) {
                 ReportScreen(
                     userRepository = userRepository,
                     pointsRepository = pointsRepository,

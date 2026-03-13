@@ -1,6 +1,13 @@
-// UnHook — Chore Wars + Wish List management screen
+// UnHook — Chore Wars + Wish List management screen with animated tab transitions
 package com.unhook.app.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,14 +50,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.unhook.app.R
 import com.unhook.app.data.db.ChoreItemDao
 import com.unhook.app.data.db.WishItemDao
 import com.unhook.app.data.model.ChoreItem
 import com.unhook.app.data.model.WishItem
+import com.unhook.app.ui.theme.pressScale
+import com.unhook.app.ui.theme.rememberReducedMotion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -64,6 +75,7 @@ fun ChoreWishScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val reducedMotion = rememberReducedMotion()
 
     val chores by choreItemDao.getAll().collectAsState(initial = emptyList())
     val wishes by wishItemDao.getAll().collectAsState(initial = emptyList())
@@ -102,29 +114,41 @@ fun ChoreWishScreen(
                 )
             }
 
-            when (selectedTab) {
-                0 -> ChoreList(
-                    items = chores,
-                    onToggle = { item ->
-                        scope.launch(Dispatchers.IO) {
-                            choreItemDao.update(item.copy(isCompleted = !item.isCompleted))
-                        }
-                    },
-                    onDelete = { item ->
-                        scope.launch(Dispatchers.IO) { choreItemDao.delete(item) }
-                    },
-                )
-                1 -> WishList(
-                    items = wishes,
-                    onToggle = { item ->
-                        scope.launch(Dispatchers.IO) {
-                            wishItemDao.update(item.copy(isGranted = !item.isGranted))
-                        }
-                    },
-                    onDelete = { item ->
-                        scope.launch(Dispatchers.IO) { wishItemDao.delete(item) }
-                    },
-                )
+            AnimatedContent(
+                targetState = selectedTab,
+                transitionSpec = {
+                    val dir = if (targetState > initialState) 1 else -1
+                    (slideInHorizontally(tween(200)) { it * dir / 3 } + fadeIn(tween(200))) togetherWith
+                        (slideOutHorizontally(tween(150)) { -it * dir / 3 } + fadeOut(tween(150)))
+                },
+                label = "tabContent",
+            ) { tab ->
+                when (tab) {
+                    0 -> ChoreList(
+                        items = chores,
+                        reducedMotion = reducedMotion,
+                        onToggle = { item ->
+                            scope.launch(Dispatchers.IO) {
+                                choreItemDao.update(item.copy(isCompleted = !item.isCompleted))
+                            }
+                        },
+                        onDelete = { item ->
+                            scope.launch(Dispatchers.IO) { choreItemDao.delete(item) }
+                        },
+                    )
+                    else -> WishList(
+                        items = wishes,
+                        reducedMotion = reducedMotion,
+                        onToggle = { item ->
+                            scope.launch(Dispatchers.IO) {
+                                wishItemDao.update(item.copy(isGranted = !item.isGranted))
+                            }
+                        },
+                        onDelete = { item ->
+                            scope.launch(Dispatchers.IO) { wishItemDao.delete(item) }
+                        },
+                    )
+                }
             }
         }
     }
@@ -150,11 +174,16 @@ fun ChoreWishScreen(
 @Composable
 private fun ChoreList(
     items: List<ChoreItem>,
+    reducedMotion: Boolean,
     onToggle: (ChoreItem) -> Unit,
     onDelete: (ChoreItem) -> Unit,
 ) {
     if (items.isEmpty()) {
-        EmptyListMessage(stringResource(R.string.chore_empty))
+        EmptyListState(
+            emoji = "🧹",
+            title = stringResource(R.string.chore_empty_title),
+            subtitle = stringResource(R.string.chore_empty_desc),
+        )
     } else {
         LazyColumn(
             modifier = Modifier.padding(16.dp),
@@ -162,6 +191,7 @@ private fun ChoreList(
         ) {
             items(items, key = { it.id }) { item ->
                 Card(
+                    modifier = Modifier.pressScale(reducedMotion),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     ),
@@ -202,11 +232,16 @@ private fun ChoreList(
 @Composable
 private fun WishList(
     items: List<WishItem>,
+    reducedMotion: Boolean,
     onToggle: (WishItem) -> Unit,
     onDelete: (WishItem) -> Unit,
 ) {
     if (items.isEmpty()) {
-        EmptyListMessage(stringResource(R.string.wish_empty))
+        EmptyListState(
+            emoji = "⭐",
+            title = stringResource(R.string.wish_empty_title),
+            subtitle = stringResource(R.string.wish_empty_desc),
+        )
     } else {
         LazyColumn(
             modifier = Modifier.padding(16.dp),
@@ -214,6 +249,7 @@ private fun WishList(
         ) {
             items(items, key = { it.id }) { item ->
                 Card(
+                    modifier = Modifier.pressScale(reducedMotion),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     ),
@@ -252,7 +288,7 @@ private fun WishList(
 }
 
 @Composable
-private fun EmptyListMessage(message: String) {
+private fun EmptyListState(emoji: String, title: String, subtitle: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -260,10 +296,18 @@ private fun EmptyListMessage(message: String) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        Text(text = emoji, fontSize = 56.sp)
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = message,
-            style = MaterialTheme.typography.bodyLarge,
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
     }
 }

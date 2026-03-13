@@ -1,6 +1,15 @@
 // UnHook — Duel screen showing weekly battle status and chore/wish navigation
 package com.unhook.app.ui.screens
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -37,8 +47,8 @@ import com.unhook.app.R
 import com.unhook.app.data.model.Partner
 import com.unhook.app.data.model.User
 import com.unhook.app.data.repository.UserRepository
-import com.unhook.app.ui.theme.PointsGreen
-import com.unhook.app.ui.theme.PointsRed
+import com.unhook.app.ui.theme.pressScale
+import com.unhook.app.ui.theme.rememberReducedMotion
 
 @Composable
 fun DuelScreen(
@@ -47,6 +57,7 @@ fun DuelScreen(
 ) {
     val user by userRepository.getMe().collectAsState(initial = null)
     val partner by userRepository.getPartner().collectAsState(initial = null)
+    val reducedMotion = rememberReducedMotion()
 
     Column(
         modifier = Modifier
@@ -67,17 +78,14 @@ fun DuelScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Battle card
-        BattleCard(user = user, partner = partner)
+        BattleCard(user = user, partner = partner, reducedMotion = reducedMotion)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Points breakdown
-        PointsBreakdownCard(user = user)
+        PointsBreakdownCard(user = user, reducedMotion = reducedMotion)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Chore/Wish management
         Button(
             onClick = onNavigateToChoreWish,
             modifier = Modifier.fillMaxWidth(),
@@ -88,20 +96,32 @@ fun DuelScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Rules reminder
         RulesCard()
     }
 }
 
 @Composable
-private fun BattleCard(user: User?, partner: Partner?) {
+private fun BattleCard(user: User?, partner: Partner?, reducedMotion: Boolean) {
     val myPoints = user?.weeklyPoints ?: 200
     val partnerPoints = partner?.weeklyPoints ?: 200
     val iAmWinning = myPoints > partnerPoints
     val isTied = myPoints == partnerPoints
 
+    val animatedMyPoints by animateIntAsState(
+        targetValue = myPoints,
+        animationSpec = if (reducedMotion) snap() else tween(800, easing = FastOutSlowInEasing),
+        label = "myScore",
+    )
+    val animatedPartnerPoints by animateIntAsState(
+        targetValue = partnerPoints,
+        animationSpec = if (reducedMotion) snap() else tween(800, easing = FastOutSlowInEasing),
+        label = "partnerScore",
+    )
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .pressScale(reducedMotion),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
         ),
@@ -117,31 +137,13 @@ private fun BattleCard(user: User?, partner: Partner?) {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Fixed-height Box prevents layout shift when winning state changes
-                    Box(modifier = Modifier.height(22.dp), contentAlignment = Alignment.Center) {
-                        if (iAmWinning) {
-                            Icon(
-                                imageVector = Icons.Filled.EmojiEvents,
-                                contentDescription = stringResource(R.string.cd_winning),
-                                tint = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
-                    }
-                    Text(user?.emojiAvatar ?: "😊", fontSize = 48.sp)
-                    Text(
-                        text = user?.name ?: "You",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        text = "$myPoints",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = if (iAmWinning) PointsGreen else MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
+                BattlePlayerColumn(
+                    emoji = user?.emojiAvatar ?: "😊",
+                    name = user?.name ?: "You",
+                    animatedPoints = animatedMyPoints,
+                    isWinning = iAmWinning,
+                    reducedMotion = reducedMotion,
+                )
 
                 Text(
                     text = stringResource(R.string.dashboard_vs),
@@ -150,30 +152,13 @@ private fun BattleCard(user: User?, partner: Partner?) {
                     color = MaterialTheme.colorScheme.primary,
                 )
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(modifier = Modifier.height(22.dp), contentAlignment = Alignment.Center) {
-                        if (!iAmWinning && !isTied) {
-                            Icon(
-                                imageVector = Icons.Filled.EmojiEvents,
-                                contentDescription = stringResource(R.string.cd_winning),
-                                tint = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        }
-                    }
-                    Text(partner?.emojiAvatar ?: "❓", fontSize = 48.sp)
-                    Text(
-                        text = partner?.name ?: "Partner",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Text(
-                        text = "$partnerPoints",
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = if (!iAmWinning && !isTied) PointsGreen else MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                }
+                BattlePlayerColumn(
+                    emoji = partner?.emojiAvatar ?: "❓",
+                    name = partner?.name ?: "Partner",
+                    animatedPoints = animatedPartnerPoints,
+                    isWinning = !iAmWinning && !isTied,
+                    reducedMotion = reducedMotion,
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -192,9 +177,74 @@ private fun BattleCard(user: User?, partner: Partner?) {
 }
 
 @Composable
-private fun PointsBreakdownCard(user: User?) {
+private fun BattlePlayerColumn(
+    emoji: String,
+    name: String,
+    animatedPoints: Int,
+    isWinning: Boolean,
+    reducedMotion: Boolean,
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "winPulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = if (isWinning && !reducedMotion) 0.6f else 1f,
+        targetValue = if (isWinning && !reducedMotion) 1.0f else 1f,
+        animationSpec = infiniteRepeatable(tween(1200), RepeatMode.Reverse),
+        label = "winAlpha",
+    )
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(modifier = Modifier.height(28.dp), contentAlignment = Alignment.Center) {
+            if (isWinning) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(
+                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = pulseAlpha),
+                            CircleShape,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.EmojiEvents,
+                        contentDescription = stringResource(R.string.cd_winning),
+                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+        }
+        Text(emoji, fontSize = 48.sp)
+        Text(
+            text = name,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        Text(
+            text = "$animatedPoints",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+    }
+}
+
+@Composable
+private fun PointsBreakdownCard(user: User?, reducedMotion: Boolean) {
+    val animatedWeeklyPoints by animateIntAsState(
+        targetValue = user?.weeklyPoints ?: 200,
+        animationSpec = if (reducedMotion) snap() else tween(800, easing = FastOutSlowInEasing),
+        label = "weeklyPoints",
+    )
+    val animatedResists by animateIntAsState(
+        targetValue = user?.totalResists ?: 0,
+        animationSpec = if (reducedMotion) snap() else tween(800, easing = FastOutSlowInEasing),
+        label = "totalResists",
+    )
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .pressScale(reducedMotion),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
@@ -206,8 +256,8 @@ private fun PointsBreakdownCard(user: User?) {
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            StatRow(stringResource(R.string.duel_weekly_points), "${user?.weeklyPoints ?: 200}")
-            StatRow(stringResource(R.string.duel_total_resists), "${user?.totalResists ?: 0}")
+            StatRow(stringResource(R.string.duel_weekly_points), "$animatedWeeklyPoints")
+            StatRow(stringResource(R.string.duel_total_resists), "$animatedResists")
             StatRow(stringResource(R.string.duel_current_streak), "${user?.currentStreak ?: 0} days")
         }
     }

@@ -27,8 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.unhook.app.R
-import com.unhook.app.ui.theme.PointsGreen
-import com.unhook.app.ui.theme.PointsRed
+import com.unhook.app.ui.theme.pointsNegativeColor
+import com.unhook.app.ui.theme.pointsPositiveColor
 
 data class DayData(
     val label: String,
@@ -41,6 +41,9 @@ fun UsageChart(
     data: List<DayData>,
     modifier: Modifier = Modifier,
 ) {
+    val earnedColor = pointsPositiveColor()
+    val lostColor = pointsNegativeColor()
+
     Column(modifier = modifier) {
         if (data.isEmpty()) {
             Box(
@@ -72,19 +75,17 @@ fun UsageChart(
             data.forEachIndexed { index, day ->
                 val x = index * (barWidth * 2 + spacing) + spacing
 
-                // Earned bar (green)
                 val earnedHeight = if (maxValue > 0) (day.earned / maxValue) * size.height * 0.85f else 0f
                 drawRoundRect(
-                    color = PointsGreen,
+                    color = earnedColor,
                     topLeft = Offset(x, size.height - earnedHeight),
                     size = Size(barWidth, earnedHeight),
                     cornerRadius = CornerRadius(4.dp.toPx()),
                 )
 
-                // Lost bar (red)
                 val lostHeight = if (maxValue > 0) (kotlin.math.abs(day.lost) / maxValue) * size.height * 0.85f else 0f
                 drawRoundRect(
-                    color = PointsRed,
+                    color = lostColor,
                     topLeft = Offset(x + barWidth, size.height - lostHeight),
                     size = Size(barWidth, lostHeight),
                     cornerRadius = CornerRadius(4.dp.toPx()),
@@ -92,7 +93,6 @@ fun UsageChart(
             }
         }
 
-        // Day labels
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -108,7 +108,6 @@ fun UsageChart(
             }
         }
 
-        // Legend
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -116,7 +115,7 @@ fun UsageChart(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            LegendDot(color = PointsGreen)
+            LegendDot(color = earnedColor)
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = stringResource(R.string.chart_legend_earned),
@@ -124,7 +123,7 @@ fun UsageChart(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.width(16.dp))
-            LegendDot(color = PointsRed)
+            LegendDot(color = lostColor)
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = stringResource(R.string.chart_legend_lost),

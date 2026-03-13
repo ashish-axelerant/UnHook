@@ -39,8 +39,8 @@ import com.unhook.app.data.repository.PointsRepository
 import com.unhook.app.data.repository.UserRepository
 import com.unhook.app.ui.components.DayData
 import com.unhook.app.ui.components.UsageChart
-import com.unhook.app.ui.theme.PointsGreen
-import com.unhook.app.ui.theme.PointsRed
+import com.unhook.app.ui.theme.pointsNegativeColor
+import com.unhook.app.ui.theme.pointsPositiveColor
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -73,11 +73,9 @@ fun ReportScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp),
         ) {
-            // Winner banner
             WinnerBanner(user = user, partner = partner)
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 7-day chart
             Text(
                 text = stringResource(R.string.report_weekly_chart),
                 style = MaterialTheme.typography.titleMedium,
@@ -91,7 +89,6 @@ fun ReportScreen(
             )
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Stats summary
             WeeklyStatsCard(user = user, events = events)
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -105,13 +102,16 @@ private fun WinnerBanner(user: User?, partner: Partner?) {
     val isTied = myPoints == partnerPoints
     val iWon = myPoints > partnerPoints
 
+    val positiveColor = pointsPositiveColor()
+    val negativeColor = pointsNegativeColor()
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = when {
                 isTied -> MaterialTheme.colorScheme.tertiaryContainer
-                iWon -> PointsGreen.copy(alpha = 0.15f)
-                else -> PointsRed.copy(alpha = 0.15f)
+                iWon -> positiveColor.copy(alpha = 0.15f)
+                else -> negativeColor.copy(alpha = 0.15f)
             },
         ),
     ) {
@@ -156,6 +156,9 @@ private fun WeeklyStatsCard(user: User?, events: List<PointEvent>) {
     val totalEarned = events.filter { it.points > 0 }.sumOf { it.points }
     val totalLost = events.filter { it.points < 0 }.sumOf { it.points }
 
+    val positiveColor = pointsPositiveColor()
+    val negativeColor = pointsNegativeColor()
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -168,17 +171,25 @@ private fun WeeklyStatsCard(user: User?, events: List<PointEvent>) {
                 style = MaterialTheme.typography.titleMedium,
             )
             Spacer(modifier = Modifier.height(12.dp))
-            ReportStatRow(stringResource(R.string.report_resists), "$resistCount", PointsGreen)
-            ReportStatRow(stringResource(R.string.report_scrolls), "$scrollCount", PointsRed)
-            ReportStatRow(stringResource(R.string.report_points_earned), "+$totalEarned", PointsGreen)
-            ReportStatRow(stringResource(R.string.report_points_lost), "$totalLost", PointsRed)
-            ReportStatRow(stringResource(R.string.report_current_streak), "${user?.currentStreak ?: 0} days", MaterialTheme.colorScheme.tertiary)
+            ReportStatRow(stringResource(R.string.report_resists), "$resistCount", positiveColor)
+            ReportStatRow(stringResource(R.string.report_scrolls), "$scrollCount", negativeColor)
+            ReportStatRow(stringResource(R.string.report_points_earned), "+$totalEarned", positiveColor)
+            ReportStatRow(stringResource(R.string.report_points_lost), "$totalLost", negativeColor)
+            ReportStatRow(
+                stringResource(R.string.report_current_streak),
+                "${user?.currentStreak ?: 0} days",
+                MaterialTheme.colorScheme.tertiary,
+            )
         }
     }
 }
 
 @Composable
-private fun ReportStatRow(label: String, value: String, valueColor: androidx.compose.ui.graphics.Color) {
+private fun ReportStatRow(
+    label: String,
+    value: String,
+    valueColor: androidx.compose.ui.graphics.Color,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -202,7 +213,6 @@ private fun ReportStatRow(label: String, value: String, valueColor: androidx.com
 private fun buildWeeklyData(events: List<PointEvent>): List<DayData> {
     val dayFormat = SimpleDateFormat("EEE", Locale.getDefault())
     val cal = Calendar.getInstance()
-    val today = cal.get(Calendar.DAY_OF_YEAR)
 
     return (6 downTo 0).map { daysAgo ->
         cal.timeInMillis = System.currentTimeMillis()
