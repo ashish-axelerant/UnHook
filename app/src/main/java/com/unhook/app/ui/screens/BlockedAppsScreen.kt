@@ -162,9 +162,12 @@ private fun AddAppDialog(
             val pm = context.packageManager
             pm.getInstalledApplications(PackageManager.GET_META_DATA)
                 .filter { appInfo ->
-                    // Skip system apps and our own package
+                    // Keep user-installed apps AND pre-installed apps that have been
+                    // updated via Play Store (FLAG_UPDATED_SYSTEM_APP) — this includes
+                    // YouTube, Instagram, etc. which ship with the ROM but are updatable.
                     val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-                    !isSystem && appInfo.packageName != "com.unhook.app"
+                    val isUpdatedSystem = (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                    (!isSystem || isUpdatedSystem) && appInfo.packageName != "com.unhook.app"
                 }
                 .map { appInfo ->
                     InstalledAppInfo(

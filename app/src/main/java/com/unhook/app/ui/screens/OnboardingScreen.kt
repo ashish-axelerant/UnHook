@@ -44,6 +44,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -127,14 +128,31 @@ fun OnboardingScreen(
         color = MaterialTheme.colorScheme.background,
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Step progress dots
-            Row(
+            // Back button + progress dots
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 52.dp, bottom = 0.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
+                    .padding(top = 48.dp),
+                contentAlignment = Alignment.Center,
             ) {
+                // Back arrow — hidden on welcome step
+                if (step > 0) {
+                    IconButton(
+                        onClick = { step-- },
+                        modifier = Modifier.align(Alignment.CenterStart).padding(start = 4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+                // Progress dots centred in the row
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                 repeat(6) { index ->
                     val dotSize by animateDpAsState(
                         targetValue = if (index == step) 10.dp else 8.dp,
@@ -154,7 +172,8 @@ fun OnboardingScreen(
                     )
                     if (index < 5) Spacer(modifier = Modifier.width(8.dp))
                 }
-            }
+                } // Row (dots)
+            } // Box (back + dots)
 
             AnimatedContent(
                 targetState = step,
@@ -226,7 +245,8 @@ private fun AppSelectionStep(
             pm.getInstalledApplications(PackageManager.GET_META_DATA)
                 .filter { appInfo ->
                     val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
-                    !isSystem && appInfo.packageName != "com.unhook.app"
+                    val isUpdatedSystem = (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                    (!isSystem || isUpdatedSystem) && appInfo.packageName != "com.unhook.app"
                 }
                 .map { appInfo ->
                     InstalledAppInfo(
@@ -248,13 +268,13 @@ private fun AppSelectionStep(
     }
 
     // Derived lists — recomputed only when inputs change
-    val selectedList = remember(installedApps, selectedApps) {
+    val selectedList = remember(installedApps, selectedApps.size) {
         installedApps.filter { selectedApps.containsKey(it.packageName) }
     }
-    val unselectedList = remember(installedApps, selectedApps) {
+    val unselectedList = remember(installedApps, selectedApps.size) {
         installedApps.filter { !selectedApps.containsKey(it.packageName) }
     }
-    val filteredApps = remember(query, installedApps, selectedApps) {
+    val filteredApps = remember(query, installedApps, selectedApps.size) {
         if (query.isBlank()) emptyList()
         else {
             val q = query.trim()

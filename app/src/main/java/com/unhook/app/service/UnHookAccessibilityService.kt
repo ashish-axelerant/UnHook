@@ -58,9 +58,20 @@ class UnHookAccessibilityService : AccessibilityService() {
             Log.d(TAG, "Grace period expired for $pkg")
         }
 
-        // Skip if user tapped "Let me in" recently
+        // Grace period active for this package
         if (packageName in tempAllowedPackages) {
-            Log.d(TAG, "Package in grace period, skipping: $packageName")
+            // User returned to the blocked app during grace period — resume reminders
+            // if no job is running (they were paused when they left).
+            if (!reminderJobs.containsKey(packageName)) {
+                val remaining = tempAllowedPackages[packageName]!! - System.currentTimeMillis()
+                if (remaining > 0) {
+                    val prefs = getSharedPreferences("unhook_prefs", MODE_PRIVATE)
+                    val intervalMs = prefs.getInt("reminder_interval_seconds", 120) * 1000L
+                    scheduleReminders(packageName, remaining, intervalMs)
+                    Log.d(TAG, "User returned to $packageName — reminders resumed ($remaining ms left)")
+                }
+            }
+            lastDetectedPackage = packageName
             return
         }
 
@@ -70,6 +81,14 @@ class UnHookAccessibilityService : AccessibilityService() {
             Log.d(TAG, "Blocked app detected: $packageName")
             launchIntervention(packageName)
         } else if (packageName !in blockedPackages) {
+            // User left a blocked/grace-period app — pause reminders and clear
+            // the notification, but keep tempAllowedPackages so they can return
+            // without being re-intervened while the grace period is still valid.
+            val leavingPkg = lastDetectedPackage
+            if (leavingPkg != null && leavingPkg in tempAllowedPackages) {
+                pauseReminders(leavingPkg)
+                Log.d(TAG, "User left $leavingPkg — reminders paused, grace period preserved")
+            }
             lastDetectedPackage = null
             interventionShowing = false
         }
@@ -95,16 +114,33 @@ class UnHookAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * Grants a grace period for [packageName] and schedules periodic heads-up
-     * reminder notifications while the user is in the app.
+     * Pauses reminder notifications when the user leaves a grace-period app.
+     * The grace period expiry timestamp is preserved so they can return without
+     * being re-intervened while time remains.
+     */
+    private fun pauseReminders(packageName: String) {
+        reminderJobs.remove(packageName)?.cancel()
+        getSystemService(NotificationManager::class.java)?.cancel(REMINDER_NOTIFICATION_ID)
+    }
+
+    /**
+     * Grants a grace period for [packageName] and starts periodic reminder
+     * notifications for as long as the user is inside the app.
      */
     fun startGracePeriod(packageName: String, durationMs: Long, reminderIntervalMs: Long) {
         tempAllowedPackages[packageName] = System.currentTimeMillis() + durationMs
         Log.d(TAG, "Grace period started for $packageName (${durationMs / 1000}s)")
+        scheduleReminders(packageName, durationMs, reminderIntervalMs)
+    }
 
-        // Cancel any existing reminder job for this package
+    /**
+     * Schedules the reminder loop for [packageName] to run for [durationMs] ms.
+     * When the loop ends naturally (grace period expired) the user is sent Home.
+     * If cancelled early (user left the app), the loop simply stops — the expiry
+     * timestamp in [tempAllowedPackages] is not touched.
+     */
+    private fun scheduleReminders(packageName: String, durationMs: Long, reminderIntervalMs: Long) {
         reminderJobs[packageName]?.cancel()
-
         reminderJobs[packageName] = scope.launch {
             val expiresAt = System.currentTimeMillis() + durationMs
             delay(reminderIntervalMs)
@@ -112,23 +148,18 @@ class UnHookAccessibilityService : AccessibilityService() {
                 sendReminderNotification(packageName)
                 delay(reminderIntervalMs)
             }
-            // Grace period over — reset state
+            // Grace period expired naturally — clean up and send user Home
             tempAllowedPackages.remove(packageName)
             if (lastDetectedPackage == packageName) lastDetectedPackage = null
             reminderJobs.remove(packageName)
-
-            // Cancel the persistent reminder notification
-            getSystemService(NotificationManager::class.java)
-                ?.cancel(REMINDER_NOTIFICATION_ID)
-
-            // Force the blocked app closed by navigating to Home
+            getSystemService(NotificationManager::class.java)?.cancel(REMINDER_NOTIFICATION_ID)
             startActivity(
                 Intent(Intent.ACTION_MAIN).apply {
                     addCategory(Intent.CATEGORY_HOME)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 },
             )
-            Log.d(TAG, "Grace period ended for $packageName — sent to Home")
+            Log.d(TAG, "Grace period expired for $packageName — sent to Home")
         }
     }
 
